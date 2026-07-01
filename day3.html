@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 3 — Countdown</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Work+Sans:wght@400;500&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FBF3EC; --plum: #3D1F2B; --rose: #C87A88; --gold: #D9A94E; --blush: #F3DCE1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: var(--cream); color: var(--plum);
+    font-family: 'Work Sans', sans-serif; display: flex; align-items: center; justify-content: center;
+    padding: 24px; overflow: hidden; position: relative;
+  }
+  h1 { font-family: 'Fraunces', serif; font-weight: 600; margin: 0 0 8px; font-size: 1.6rem; }
+  p.sub { margin: 0 0 28px; opacity: 0.75; font-size: 0.95rem; }
+  .seal {
+    position: fixed; top: 24px; right: 24px; width: 64px; height: 64px; border-radius: 50%;
+    background: var(--gold); color: var(--cream); display: flex; align-items: center; justify-content: center;
+    font-family: 'Caveat', cursive; font-size: 1.3rem; box-shadow: 0 4px 12px rgba(61,31,43,0.25);
+    transform: rotate(-6deg); user-select: none; z-index: 2;
+  }
+  .card {
+    background: var(--blush); border-radius: 20px; padding: 40px; max-width: 480px; width: 100%;
+    text-align: center; box-shadow: 0 8px 30px rgba(61,31,43,0.12); animation: rise 0.6s ease-out;
+    position: relative; z-index: 1;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .units {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 24px 0 8px;
+  }
+  .unit {
+    background: var(--cream); border-radius: 14px; padding: 16px 4px;
+    box-shadow: inset 0 0 0 1px rgba(61,31,43,0.06);
+  }
+  .unit .num {
+    font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.9rem; line-height: 1;
+    color: var(--rose);
+  }
+  .unit .label {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.6; margin-top: 6px;
+  }
+  .note { font-family: 'Caveat', cursive; font-size: 1.15rem; margin-top: 20px; opacity: 0.85; }
+  .bg-petal {
+    position: absolute; font-size: 1.2rem; opacity: 0.25; pointer-events: none; animation: fall linear infinite;
+  }
+  @keyframes fall {
+    from { transform: translateY(-10vh) rotate(0deg); }
+    to { transform: translateY(110vh) rotate(360deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card { animation: none; }
+    .bg-petal { display: none; }
+  }
+  @media (max-width: 420px) {
+    .unit .num { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+  <div class="seal">Day 3</div>
+  <div class="card">
+    <h1>Counting Down to You</h1>
+    <p class="sub" id="dateLabel">Until August 2nd</p>
+    <div class="units">
+      <div class="unit"><div class="num" id="days">00</div><div class="label">days</div></div>
+      <div class="unit"><div class="num" id="hours">00</div><div class="label">hrs</div></div>
+      <div class="unit"><div class="num" id="mins">00</div><div class="label">min</div></div>
+      <div class="unit"><div class="num" id="secs">00</div><div class="label">sec</div></div>
+    </div>
+    <p class="note" id="note">every second is one closer to celebrating you</p>
+  </div>
+
+<script>
+  // Set to her birthday — adjust year if needed
+  const target = new Date('2026-08-02T00:00:00');
+
+  const daysEl = document.getElementById('days');
+  const hoursEl = document.getElementById('hours');
+  const minsEl = document.getElementById('mins');
+  const secsEl = document.getElementById('secs');
+  const note = document.getElementById('note');
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function tick() {
+    const now = new Date();
+    const diff = target - now;
+
+    if (diff <= 0) {
+      daysEl.textContent = '00'; hoursEl.textContent = '00';
+      minsEl.textContent = '00'; secsEl.textContent = '00';
+      note.textContent = "it's today. happy birthday. 🤍";
+      clearInterval(interval);
+      return;
+    }
+
+    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const m = Math.floor((diff / (1000 * 60)) % 60);
+    const s = Math.floor((diff / 1000) % 60);
+
+    daysEl.textContent = pad(d);
+    hoursEl.textContent = pad(h);
+    minsEl.textContent = pad(m);
+    secsEl.textContent = pad(s);
+  }
+
+  tick();
+  const interval = setInterval(tick, 1000);
+
+  // Subtle falling petals in the background
+  const petals = ['🤍', '✦', '·'];
+  for (let i = 0; i < 14; i++) {
+    const p = document.createElement('div');
+    p.className = 'bg-petal';
+    p.textContent = petals[Math.floor(Math.random() * petals.length)];
+    p.style.left = Math.random() * 100 + 'vw';
+    p.style.animationDuration = (10 + Math.random() * 10) + 's';
+    p.style.animationDelay = (Math.random() * 10) + 's';
+    document.body.appendChild(p);
+  }
+</script>
+</body>
+</html>

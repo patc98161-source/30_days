@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 1 — Reasons I Love You</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Work+Sans:wght@400;500&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FBF3EC;
+    --plum: #3D1F2B;
+    --rose: #C87A88;
+    --gold: #D9A94E;
+    --blush: #F3DCE1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh;
+    background: var(--cream); color: var(--plum);
+    font-family: 'Work Sans', sans-serif;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  h1 { font-family: 'Fraunces', serif; font-weight: 600; margin: 0 0 8px; font-size: 1.6rem; }
+  p.sub { margin: 0 0 28px; opacity: 0.75; font-size: 0.95rem; }
+  .seal {
+    position: fixed; top: 24px; right: 24px;
+    width: 64px; height: 64px; border-radius: 50%;
+    background: var(--gold); color: var(--cream);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Caveat', cursive; font-size: 1.3rem;
+    box-shadow: 0 4px 12px rgba(61,31,43,0.25);
+    transform: rotate(-6deg); user-select: none;
+  }
+  .card {
+    background: var(--blush); border-radius: 20px; padding: 40px;
+    max-width: 460px; width: 100%; text-align: center;
+    box-shadow: 0 8px 30px rgba(61,31,43,0.12);
+    animation: rise 0.6s ease-out;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  #reason {
+    font-family: 'Fraunces', serif;
+    font-size: 1.3rem;
+    line-height: 1.5;
+    min-height: 90px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 24px;
+    transition: opacity 0.25s ease;
+  }
+  button {
+    font-family: 'Work Sans', sans-serif; font-weight: 500;
+    background: var(--rose); color: var(--cream); border: none;
+    padding: 12px 28px; border-radius: 999px; font-size: 1rem;
+    cursor: pointer; transition: transform 0.15s ease, background 0.15s ease;
+  }
+  button:hover { background: var(--plum); transform: translateY(-2px); }
+  button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .counter { margin-top: 18px; font-size: 0.8rem; opacity: 0.6; }
+  @media (prefers-reduced-motion: reduce) {
+    .card { animation: none; }
+    button { transition: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="seal">Day 1</div>
+  <div class="card">
+    <h1>Reasons I Love You</h1>
+    <p class="sub">tap the button, one reason at a time</p>
+    <div id="reason">Press the button to begin. 🤍</div>
+    <button id="btn">Give me a reason</button>
+    <div class="counter" id="counter"></div>
+  </div>
+
+<script>
+  // ---- EDIT THIS LIST WITH YOUR OWN REASONS ----
+  const reasons = [
+    "The way you laugh at your own jokes before you finish telling them.",
+    "You remember the small things I mention once and never bring up again.",
+    "You make ordinary days feel like they're worth remembering.",
+    "The way you get excited about things you care about — it's contagious.",
+    "You're the calmest person I know in a crisis, and the most fun outside one.",
+    "You ask good questions. Not small talk questions — real ones.",
+    "The way you say my name when you're about to tell me something important.",
+    "You've never once made me feel small for not knowing something.",
+    "You're stubborn about the things that actually matter.",
+    "You make me want to be a more patient, more curious version of myself.",
+    "Your terrible taste in [INSERT SOMETHING], somehow, is endearing.",
+    "You remember birthdays, anniversaries, and small promises — you just care that much.",
+    "The way you look when you're deep in focus on something you love.",
+    "You've never let me feel alone in a hard moment.",
+    "You make plans and then you actually follow through on them.",
+  ];
+  // -----------------------------------------------
+
+  const reasonEl = document.getElementById('reason');
+  const counterEl = document.getElementById('counter');
+  const btn = document.getElementById('btn');
+  let shown = new Set();
+
+  function pickReason() {
+    if (shown.size >= reasons.length) shown.clear();
+    let idx;
+    do { idx = Math.floor(Math.random() * reasons.length); } while (shown.has(idx));
+    shown.add(idx);
+    return { text: reasons[idx], count: shown.size };
+  }
+
+  btn.addEventListener('click', () => {
+    reasonEl.style.opacity = 0;
+    setTimeout(() => {
+      const { text, count } = pickReason();
+      reasonEl.textContent = text;
+      reasonEl.style.opacity = 1;
+      counterEl.textContent = `${count} of ${reasons.length} reasons shown`;
+      btn.textContent = shown.size >= reasons.length ? "Start over" : "Give me another";
+    }, 200);
+  });
+</script>
+</body>
+</html>
