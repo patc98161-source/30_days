@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 6 — How Are You, Really?</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Work+Sans:wght@400;500&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FBF3EC; --plum: #3D1F2B; --rose: #C87A88; --gold: #D9A94E; --blush: #F3DCE1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: var(--cream); color: var(--plum);
+    font-family: 'Work Sans', sans-serif; display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  h1 { font-family: 'Fraunces', serif; font-weight: 600; margin: 0 0 8px; font-size: 1.6rem; text-align: center; }
+  p.sub { margin: 0 0 24px; opacity: 0.75; font-size: 0.95rem; text-align: center; }
+  .seal {
+    position: fixed; top: 24px; right: 24px; width: 64px; height: 64px; border-radius: 50%;
+    background: var(--gold); color: var(--cream); display: flex; align-items: center; justify-content: center;
+    font-family: 'Caveat', cursive; font-size: 1.3rem; box-shadow: 0 4px 12px rgba(61,31,43,0.25);
+    transform: rotate(-6deg); user-select: none;
+  }
+  .card {
+    background: var(--blush); border-radius: 20px; padding: 40px; max-width: 460px; width: 100%;
+    text-align: center; box-shadow: 0 8px 30px rgba(61,31,43,0.12); animation: rise 0.6s ease-out;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  .moods {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 8px;
+  }
+  .mood-btn {
+    background: var(--cream); border: none; border-radius: 12px; padding: 12px 4px;
+    cursor: pointer; font-size: 1.6rem; transition: transform 0.15s ease, background 0.15s ease;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .mood-btn .lbl { font-size: 0.6rem; font-family: 'Work Sans', sans-serif; opacity: 0.65; }
+  .mood-btn:hover { transform: translateY(-3px); background: var(--rose); }
+  .mood-btn:hover .lbl { color: var(--cream); opacity: 1; }
+  .mood-btn.active { background: var(--rose); }
+  .mood-btn.active .lbl { color: var(--cream); opacity: 1; }
+  .mood-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+  .response {
+    margin-top: 24px; min-height: 130px; opacity: 0; transition: opacity 0.4s ease;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .response.show { opacity: 1; }
+  .response .visual { font-size: 2.4rem; margin-bottom: 10px; }
+  .response p {
+    font-family: 'Fraunces', serif; font-style: italic; font-size: 1.05rem; line-height: 1.5; margin: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card { animation: none; }
+    .mood-btn { transition: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="seal">Day 6</div>
+  <div class="card">
+    <h1>How Are You, Really?</h1>
+    <p class="sub">pick the one that fits right now</p>
+
+    <div class="moods" id="moods"></div>
+
+    <div class="response" id="response">
+      <div class="visual" id="visual"></div>
+      <p id="responseText"></p>
+    </div>
+  </div>
+
+<script>
+  // ---- EDIT THESE MESSAGES TO FIT HER ----
+  const moods = [
+    {
+      emoji: "😊", label: "good", visual: "✦ ✦ ✦",
+      text: "I love that. Hold onto it — and tell me one good thing from today when you get a chance."
+    },
+    {
+      emoji: "😴", label: "tired", visual: "☁️",
+      text: "Then don't push today harder than it needs to go. Rest is productive too. I've got you."
+    },
+    {
+      emoji: "😤", label: "stressed", visual: "〰️〰️〰️",
+      text: "Okay — breathe for a second. Whatever it is, you've handled harder. I'm right here if you need to vent."
+    },
+    {
+      emoji: "🥺", label: "low", visual: "🤍",
+      text: "I'm sorry today's heavy. You don't have to explain it or fix your mood for me — just know I'm thinking of you."
+    },
+    {
+      emoji: "🥰", label: "loved", visual: "💗",
+      text: "Good. Because you are. Endlessly, and on purpose, every single day — not just today."
+    },
+  ];
+  // -----------------------------------------
+
+  const moodsEl = document.getElementById('moods');
+  const response = document.getElementById('response');
+  const visual = document.getElementById('visual');
+  const responseText = document.getElementById('responseText');
+
+  moods.forEach((m) => {
+    const btn = document.createElement('button');
+    btn.className = 'mood-btn';
+    btn.innerHTML = `${m.emoji}<span class="lbl">${m.label}</span>`;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      response.classList.remove('show');
+      setTimeout(() => {
+        visual.textContent = m.visual;
+        responseText.textContent = m.text;
+        response.classList.add('show');
+      }, 150);
+    });
+    moodsEl.appendChild(btn);
+  });
+</script>
+</body>
+</html>
