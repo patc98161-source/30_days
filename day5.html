@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 5 — Us, In Pictures</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Work+Sans:wght@400;500&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FBF3EC; --plum: #3D1F2B; --rose: #C87A88; --gold: #D9A94E; --blush: #F3DCE1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: var(--cream); color: var(--plum);
+    font-family: 'Work Sans', sans-serif; display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  h1 { font-family: 'Fraunces', serif; font-weight: 600; margin: 0 0 8px; font-size: 1.6rem; text-align: center; }
+  p.sub { margin: 0 0 24px; opacity: 0.75; font-size: 0.95rem; text-align: center; }
+  .seal {
+    position: fixed; top: 24px; right: 24px; width: 64px; height: 64px; border-radius: 50%;
+    background: var(--gold); color: var(--cream); display: flex; align-items: center; justify-content: center;
+    font-family: 'Caveat', cursive; font-size: 1.3rem; box-shadow: 0 4px 12px rgba(61,31,43,0.25);
+    transform: rotate(-6deg); user-select: none; z-index: 5;
+  }
+  .card {
+    background: var(--blush); border-radius: 20px; padding: 40px; max-width: 640px; width: 100%;
+    box-shadow: 0 8px 30px rgba(61,31,43,0.12); animation: rise 0.6s ease-out;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  .gallery {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  }
+  .photo {
+    aspect-ratio: 1; border-radius: 14px; overflow: hidden; cursor: pointer;
+    position: relative; box-shadow: 0 4px 12px rgba(61,31,43,0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .photo:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 8px 20px rgba(61,31,43,0.18); }
+  .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photo .placeholder {
+    width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+    background: var(--cream); font-family: 'Fraunces', serif; font-size: 0.85rem;
+    text-align: center; padding: 8px; opacity: 0.5; line-height: 1.3;
+  }
+  .photo .cap-overlay {
+    position: absolute; inset: 0; background: linear-gradient(to top, rgba(61,31,43,0.7), transparent 55%);
+    display: flex; align-items: flex-end; padding: 8px; opacity: 0; transition: opacity 0.2s ease;
+  }
+  .photo:hover .cap-overlay { opacity: 1; }
+  .photo .cap-overlay span {
+    color: var(--cream); font-size: 0.7rem; font-family: 'Work Sans', sans-serif;
+  }
+
+  .lightbox {
+    display: none; position: fixed; inset: 0; background: rgba(61,31,43,0.85);
+    align-items: center; justify-content: center; z-index: 10; padding: 24px;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox-inner {
+    background: var(--cream); border-radius: 16px; padding: 16px; max-width: 480px; width: 100%;
+    text-align: center;
+  }
+  .lightbox-inner .frame {
+    width: 100%; aspect-ratio: 4/3; border-radius: 10px; overflow: hidden; margin-bottom: 14px;
+    background: var(--blush); display: flex; align-items: center; justify-content: center;
+  }
+  .lightbox-inner img { width: 100%; height: 100%; object-fit: cover; display: none; }
+  .lightbox-inner .placeholder-lg {
+    font-family: 'Fraunces', serif; opacity: 0.5; padding: 20px; font-size: 0.95rem;
+  }
+  .lightbox-caption {
+    font-family: 'Fraunces', serif; font-style: italic; font-size: 1.05rem; margin: 0 0 14px;
+  }
+  .lightbox-close {
+    background: var(--rose); color: var(--cream); border: none; padding: 8px 22px;
+    border-radius: 999px; font-family: 'Work Sans', sans-serif; cursor: pointer; font-size: 0.9rem;
+  }
+  .lightbox-close:hover { background: var(--plum); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card { animation: none; }
+    .photo { transition: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="seal">Day 5</div>
+  <div class="card">
+    <h1>Us, In Pictures</h1>
+    <p class="sub">tap any photo to open it</p>
+    <div class="gallery" id="gallery"></div>
+  </div>
+
+  <div class="lightbox" id="lightbox">
+    <div class="lightbox-inner">
+      <div class="frame">
+        <img id="lightboxImg" alt="">
+        <div class="placeholder-lg" id="lightboxPlaceholder"></div>
+      </div>
+      <p class="lightbox-caption" id="lightboxCaption"></p>
+      <button class="lightbox-close" id="closeBtn">Close</button>
+    </div>
+  </div>
+
+<script>
+  // ---- EDIT THIS LIST WITH YOUR OWN PHOTOS ----
+  // Put your image files in a folder like "photos/" next to this file,
+  // then set "src" to the filename, e.g. "photos/first-date.jpg".
+  // Leave src as "" to show a placeholder until you add the real photo.
+  const photos = [
+    { src: "", caption: "Our first photo together" },
+    { src: "", caption: "That trip we almost didn't take" },
+    { src: "", caption: "The one where you weren't ready" },
+    { src: "", caption: "Random Tuesday, good mood" },
+    { src: "", caption: "Your favorite place" },
+    { src: "", caption: "The one I have as my wallpaper" },
+  ];
+  // -----------------------------------------------
+
+  const gallery = document.getElementById('gallery');
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxPlaceholder = document.getElementById('lightboxPlaceholder');
+  const lightboxCaption = document.getElementById('lightboxCaption');
+  const closeBtn = document.getElementById('closeBtn');
+
+  photos.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'photo';
+    div.innerHTML = p.src
+      ? `<img src="${p.src}" alt="${p.caption}">`
+      : `<div class="placeholder">Photo ${i + 1}<br>(add image)</div>`;
+    const overlay = document.createElement('div');
+    overlay.className = 'cap-overlay';
+    overlay.innerHTML = `<span>${p.caption}</span>`;
+    div.appendChild(overlay);
+    div.addEventListener('click', () => openLightbox(p));
+    gallery.appendChild(div);
+  });
+
+  function openLightbox(p) {
+    if (p.src) {
+      lightboxImg.src = p.src;
+      lightboxImg.style.display = 'block';
+      lightboxPlaceholder.style.display = 'none';
+    } else {
+      lightboxImg.style.display = 'none';
+      lightboxPlaceholder.style.display = 'block';
+      lightboxPlaceholder.textContent = 'Add this photo\'s file to bring it to life.';
+    }
+    lightboxCaption.textContent = p.caption;
+    lightbox.classList.add('open');
+  }
+
+  closeBtn.addEventListener('click', () => lightbox.classList.remove('open'));
+  lightbox.addEventListener('click', (e) => { if (e.target === lightbox) lightbox.classList.remove('open'); });
+</script>
+</body>
+</html>
