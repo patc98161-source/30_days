@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 7 — How Well Do You Know Us?</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Work+Sans:wght@400;500&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FBF3EC; --plum: #3D1F2B; --rose: #C87A88; --gold: #D9A94E; --blush: #F3DCE1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: var(--cream); color: var(--plum);
+    font-family: 'Work Sans', sans-serif; display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  h1 { font-family: 'Fraunces', serif; font-weight: 600; margin: 0 0 8px; font-size: 1.5rem; text-align: center; }
+  p.sub { margin: 0 0 20px; opacity: 0.75; font-size: 0.9rem; text-align: center; }
+  .seal {
+    position: fixed; top: 24px; right: 24px; width: 64px; height: 64px; border-radius: 50%;
+    background: var(--gold); color: var(--cream); display: flex; align-items: center; justify-content: center;
+    font-family: 'Caveat', cursive; font-size: 1.3rem; box-shadow: 0 4px 12px rgba(61,31,43,0.25);
+    transform: rotate(-6deg); user-select: none;
+  }
+  .card {
+    background: var(--blush); border-radius: 20px; padding: 36px; max-width: 460px; width: 100%;
+    box-shadow: 0 8px 30px rgba(61,31,43,0.12); animation: rise 0.6s ease-out;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  .progress {
+    display: flex; gap: 6px; margin-bottom: 22px; justify-content: center;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cream); transition: background 0.2s ease; }
+  .dot.done { background: var(--rose); }
+  .dot.current { background: var(--plum); }
+
+  .q-text {
+    font-family: 'Fraunces', serif; font-size: 1.15rem; text-align: center; margin: 0 0 20px; line-height: 1.4;
+  }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .opt {
+    background: var(--cream); border: 2px solid transparent; border-radius: 12px; padding: 12px 16px;
+    text-align: left; cursor: pointer; font-family: 'Work Sans', sans-serif; font-size: 0.95rem;
+    color: var(--plum); transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .opt:hover { border-color: var(--rose); }
+  .opt:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .opt.correct { background: var(--rose); color: var(--cream); border-color: var(--rose); }
+  .opt.wrong { background: #E8B4B4; color: var(--plum); border-color: #E8B4B4; }
+  .opt.disabled { pointer-events: none; }
+
+  .next-btn {
+    display: none; margin: 20px auto 0; background: var(--rose); color: var(--cream); border: none;
+    padding: 10px 28px; border-radius: 999px; font-family: 'Work Sans', sans-serif; font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .next-btn.show { display: block; }
+  .next-btn:hover { background: var(--plum); }
+
+  .result { text-align: center; }
+  .result .score {
+    font-family: 'Fraunces', serif; font-size: 2.4rem; color: var(--rose); margin: 8px 0;
+  }
+  .result p { font-family: 'Fraunces', serif; font-style: italic; line-height: 1.5; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card { animation: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="seal">Day 7</div>
+  <div class="card">
+    <h1>How Well Do You Know Us?</h1>
+    <p class="sub" id="subText">a little quiz, just for fun</p>
+    <div class="progress" id="progress"></div>
+    <div id="quizArea"></div>
+  </div>
+
+<script>
+  // ---- EDIT THESE QUESTIONS WITH YOUR REAL ANSWERS ----
+  // "correct" is the index (0-based) of the right option in "options".
+  const questions = [
+    {
+      q: "Where was our first date?",
+      options: ["Option A", "Option B", "Option C"],
+      correct: 0
+    },
+    {
+      q: "What's my go-to order when we eat out?",
+      options: ["Option A", "Option B", "Option C"],
+      correct: 1
+    },
+    {
+      q: "What's the one movie/show I've made you watch more than once?",
+      options: ["Option A", "Option B", "Option C"],
+      correct: 2
+    },
+    {
+      q: "What do I always say before hanging up the phone?",
+      options: ["Option A", "Option B", "Option C"],
+      correct: 0
+    },
+    {
+      q: "What's something I'm weirdly good at?",
+      options: ["Option A", "Option B", "Option C"],
+      correct: 1
+    },
+  ];
+
+  const results = [
+    { min: 5, max: 5, text: "Perfect score. Honestly not surprised — you pay attention in ways I notice more than I say." },
+    { min: 3, max: 4, text: "Pretty solid. You know me better than you probably give yourself credit for." },
+    { min: 0, max: 2, text: "Okay, we clearly need more inside jokes and less outside noise. Let's fix that." },
+  ];
+  // -------------------------------------------------------
+
+  let current = 0;
+  let score = 0;
+  const quizArea = document.getElementById('quizArea');
+  const progress = document.getElementById('progress');
+  const subText = document.getElementById('subText');
+
+  function renderProgress() {
+    progress.innerHTML = '';
+    questions.forEach((_, i) => {
+      const d = document.createElement('div');
+      d.className = 'dot' + (i < current ? ' done' : i === current ? ' current' : '');
+      progress.appendChild(d);
+    });
+  }
+
+  function renderQuestion() {
+    renderProgress();
+    const q = questions[current];
+    quizArea.innerHTML = `
+      <p class="q-text">${q.q}</p>
+      <div class="options" id="opts"></div>
+      <button class="next-btn" id="nextBtn">${current === questions.length - 1 ? 'See result' : 'Next'}</button>
+    `;
+    const opts = document.getElementById('opts');
+    const nextBtn = document.getElementById('nextBtn');
+
+    q.options.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      btn.textContent = opt;
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.opt').forEach(b => b.classList.add('disabled'));
+        if (i === q.correct) {
+          btn.classList.add('correct');
+          score++;
+        } else {
+          btn.classList.add('wrong');
+          opts.children[q.correct].classList.add('correct');
+        }
+        nextBtn.classList.add('show');
+      });
+      opts.appendChild(btn);
+    });
+
+    nextBtn.addEventListener('click', () => {
+      current++;
+      if (current < questions.length) {
+        renderQuestion();
+      } else {
+        renderResult();
+      }
+    });
+  }
+
+  function renderResult() {
+    subText.textContent = 'results';
+    progress.innerHTML = '';
+    const r = results.find(r => score >= r.min && score <= r.max) || results[results.length - 1];
+    quizArea.innerHTML = `
+      <div class="result">
+        <div class="score">${score} / ${questions.length}</div>
+        <p>${r.text}</p>
+      </div>
+    `;
+  }
+
+  renderQuestion();
+</script>
+</body>
+</html>
