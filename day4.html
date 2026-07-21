@@ -29,7 +29,7 @@
   }
   @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
-  .cookie-wrap { height: 160px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+  .cookie-wrap { height: 170px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; position: relative; }
 
   .cookie {
     width: 130px; height: 90px; cursor: pointer; position: relative;
@@ -38,17 +38,59 @@
   .cookie:hover { transform: scale(1.04); }
   .cookie svg { width: 100%; height: 100%; display: block; }
 
-  .cookie.cracked { pointer-events: none; }
+  .cookie.shaking { animation: shake 0.45s ease-in-out; pointer-events: none; }
+  @keyframes shake {
+    0%, 100% { transform: rotate(0deg) translateX(0); }
+    15% { transform: rotate(-6deg) translateX(-3px); }
+    30% { transform: rotate(5deg) translateX(3px); }
+    45% { transform: rotate(-5deg) translateX(-2px); }
+    60% { transform: rotate(4deg) translateX(2px); }
+    75% { transform: rotate(-3deg) translateX(-1px); }
+    90% { transform: rotate(2deg) translateX(1px); }
+  }
 
-  .halves { display: none; align-items: center; justify-content: center; gap: 14px; }
+  .cookie.hidden { display: none; }
+
+  .halves {
+    position: absolute; inset: 0; display: none; align-items: center; justify-content: center; gap: 0;
+  }
   .halves.show { display: flex; }
-  .half { width: 60px; height: 70px; }
+  .half { width: 60px; height: 78px; opacity: 0; }
+  .half.left { transform: translateX(4px) rotate(0deg); }
+  .half.right { transform: translateX(-4px) rotate(0deg); }
+  .half.animate.left { animation: flyLeft 0.55s cubic-bezier(.34,1.56,.64,1) forwards; }
+  .half.animate.right { animation: flyRight 0.55s cubic-bezier(.34,1.56,.64,1) forwards; }
+  @keyframes flyLeft {
+    0% { opacity: 1; transform: translateX(4px) translateY(0) rotate(0deg); }
+    100% { opacity: 1; transform: translateX(-34px) translateY(6px) rotate(-28deg); }
+  }
+  @keyframes flyRight {
+    0% { opacity: 1; transform: translateX(-4px) translateY(0) rotate(0deg); }
+    100% { opacity: 1; transform: translateX(34px) translateY(6px) rotate(28deg); }
+  }
+
+  .crumb {
+    position: absolute; top: 50%; left: 50%; width: 5px; height: 5px; border-radius: 1px;
+    background: #C7963E; opacity: 0; pointer-events: none;
+  }
+  .crumb.burst { animation: crumbBurst 0.5s ease-out forwards; }
+  @keyframes crumbBurst {
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.4); }
+  }
 
   .fortune-slip {
-    margin-top: 20px; min-height: 70px; display: flex; align-items: center; justify-content: center;
-    padding: 0 12px; opacity: 0; transition: opacity 0.4s ease;
+    margin-top: 24px; min-height: 70px; display: flex; align-items: center; justify-content: center;
+    padding: 0 12px; opacity: 0; transform: translateY(10px) scale(0.9);
   }
-  .fortune-slip.show { opacity: 1; }
+  .fortune-slip.show {
+    animation: slipIn 0.45s cubic-bezier(.34,1.56,.64,1) forwards;
+  }
+  @keyframes slipIn {
+    0% { opacity: 0; transform: translateY(10px) scale(0.85); }
+    60% { opacity: 1; transform: translateY(-3px) scale(1.03); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
   .fortune-slip p {
     font-family: 'Fraunces', serif; font-style: italic; font-size: 1.1rem; line-height: 1.5; margin: 0;
   }
@@ -67,6 +109,11 @@
   @media (prefers-reduced-motion: reduce) {
     .card { animation: none; }
     .cookie, button { transition: none; }
+    .cookie.shaking { animation: none; }
+    .half.animate.left, .half.animate.right { animation: none; opacity: 1; transform: translateX(-30px); }
+    .half.animate.right { transform: translateX(30px); }
+    .crumb.burst { animation: none; opacity: 0; }
+    .fortune-slip.show { animation: none; opacity: 1; transform: none; }
   }
 </style>
 </head>
@@ -76,7 +123,7 @@
     <h1>Crack a Compliment</h1>
     <p class="sub" id="hintText">tap the cookie to crack it open</p>
 
-    <div class="cookie-wrap">
+    <div class="cookie-wrap" id="cookieWrap">
       <div class="cookie" id="cookie">
         <svg viewBox="0 0 130 90" xmlns="http://www.w3.org/2000/svg">
           <path d="M10 45 Q10 15 65 15 Q120 15 120 45 Q120 70 65 78 Q10 70 10 45 Z" fill="#E8BE6C" stroke="#C7963E" stroke-width="2"/>
@@ -84,14 +131,14 @@
         </svg>
       </div>
       <div class="halves" id="halves">
-        <div class="half">
-          <svg viewBox="0 0 60 90" xmlns="http://www.w3.org/2000/svg">
-            <path d="M50 20 Q10 15 8 45 Q6 68 45 75 L50 20 Z" fill="#E8BE6C" stroke="#C7963E" stroke-width="2"/>
+        <div class="half left" id="halfLeft">
+          <svg viewBox="0 0 60 78" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 12 Q10 8 8 39 Q6 62 45 68 L50 12 Z" fill="#E8BE6C" stroke="#C7963E" stroke-width="2"/>
           </svg>
         </div>
-        <div class="half">
-          <svg viewBox="0 0 60 90" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 20 Q50 15 52 45 Q54 68 15 75 L10 20 Z" fill="#E8BE6C" stroke="#C7963E" stroke-width="2"/>
+        <div class="half right" id="halfRight">
+          <svg viewBox="0 0 60 78" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 12 Q50 8 52 39 Q54 62 15 68 L10 12 Z" fill="#E8BE6C" stroke="#C7963E" stroke-width="2"/>
           </svg>
         </div>
       </div>
@@ -105,25 +152,33 @@
   </div>
 
 <script>
-
+ 
   const fortunes = [
     "You make hard days feel manageable just by being on the other end of the phone.",
-    "There's a kind of magic in your smile that I didn't know but every time it makes me happy.",
-    "You're better at loving people than you give yourself credit for.Bs merpai hee nhi aata pyar hamesha marne pitne ki baate krti rehti h",
+    "There's a kind of steadiness in you that I didn't know I needed until I had it.",
+    "You notice things about people that most people miss.",
+    "Tu bohot kind aur caring  hai,but pata nhi kyu merko hamesha daati h",
+    "You're better at loving people(except me,muze toh pakka maar e gi kisi din) than you give yourself credit for.",
     "Something good is coming your way — and you've earned every bit of it.",
-    "The way you care about the people close to you is cute.Gunnu ko aur muze hamesha daati rehti h,but pyar bhi krti h bohot sara☺️",
-    "You carry more than people realize,kisi ko dikhe ya na dikhe kaddu, but i'm proud of you😘.",
+    "The way you care about the people close to you is rare.",
+    "You carry more than people realize, and you still show up soft.",
+     "Teri aakhe Kaddu,kisi din mai mr jau ga inmai ddob kai",
     "Today is a good day to remember how much you're loved.",
+    "Dekh kaddu tu hee meri Lakshmi,Saraswati aur Parwati,you can do anything you want just believe in yourself,Tu Devi h yr meri.",
   ];
   // ---------------------------------------------
 
+  const cookieWrap = document.getElementById('cookieWrap');
   const cookie = document.getElementById('cookie');
   const halves = document.getElementById('halves');
+  const halfLeft = document.getElementById('halfLeft');
+  const halfRight = document.getElementById('halfRight');
   const slip = document.getElementById('slip');
   const fortuneText = document.getElementById('fortuneText');
   const hintText = document.getElementById('hintText');
   const againBtn = document.getElementById('againBtn');
   let shown = new Set();
+  let cracking = false;
 
   function pickFortune() {
     if (shown.size >= fortunes.length) shown.clear();
@@ -133,20 +188,47 @@
     return fortunes[idx];
   }
 
+  function spawnCrumbs() {
+    for (let i = 0; i < 8; i++) {
+      const c = document.createElement('div');
+      c.className = 'crumb';
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 18 + Math.random() * 22;
+      c.style.setProperty('--dx', `${Math.cos(angle) * dist}px`);
+      c.style.setProperty('--dy', `${Math.sin(angle) * dist - 10}px`);
+      cookieWrap.appendChild(c);
+      requestAnimationFrame(() => c.classList.add('burst'));
+      setTimeout(() => c.remove(), 550);
+    }
+  }
+
   function crack() {
-    cookie.classList.add('cracked');
-    cookie.style.display = 'none';
-    halves.classList.add('show');
-    fortuneText.textContent = pickFortune();
-    setTimeout(() => slip.classList.add('show'), 150);
-    hintText.textContent = 'your fortune';
-    againBtn.classList.add('show');
+    if (cracking) return;
+    cracking = true;
+    hintText.textContent = 'cracking...';
+    cookie.classList.add('shaking');
+
+    setTimeout(() => {
+      cookie.classList.add('hidden');
+      cookie.classList.remove('shaking');
+      halves.classList.add('show');
+      halfLeft.classList.add('animate');
+      halfRight.classList.add('animate');
+      spawnCrumbs();
+
+      fortuneText.textContent = pickFortune();
+      setTimeout(() => slip.classList.add('show'), 200);
+      hintText.textContent = 'your fortune';
+      againBtn.classList.add('show');
+      cracking = false;
+    }, 450);
   }
 
   function reset() {
-    cookie.style.display = 'block';
-    cookie.classList.remove('cracked');
+    cookie.classList.remove('hidden');
     halves.classList.remove('show');
+    halfLeft.classList.remove('animate');
+    halfRight.classList.remove('animate');
     slip.classList.remove('show');
     hintText.textContent = 'tap the cookie to crack it open';
     againBtn.classList.remove('show');
