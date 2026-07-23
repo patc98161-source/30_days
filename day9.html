@@ -1,1 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 12 — Roll the Dice</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Work+Sans:wght@400;500&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FBF3EC; --plum: #3D1F2B; --rose: #C87A88; --gold: #D9A94E; --blush: #F3DCE1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: var(--cream); color: var(--plum);
+    font-family: 'Work Sans', sans-serif; display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  h1 { font-family: 'Fraunces', serif; font-weight: 600; margin: 0 0 8px; font-size: 1.5rem; text-align: center; }
+  p.sub { margin: 0 0 24px; opacity: 0.75; font-size: 0.9rem; text-align: center; }
+  .seal {
+    position: fixed; top: 24px; right: 24px; width: 64px; height: 64px; border-radius: 50%;
+    background: var(--gold); color: var(--cream); display: flex; align-items: center; justify-content: center;
+    font-family: 'Caveat', cursive; font-size: 1.3rem; box-shadow: 0 4px 12px rgba(61,31,43,0.25);
+    transform: rotate(-6deg); user-select: none;
+  }
+  .card {
+    background: var(--blush); border-radius: 20px; padding: 36px; max-width: 420px; width: 100%;
+    text-align: center; box-shadow: 0 8px 30px rgba(61,31,43,0.12); animation: rise 0.6s ease-out;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
+  .die-wrap { height: 100px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+  .die {
+    width: 72px; height: 72px; background: var(--cream); border-radius: 16px; cursor: pointer;
+    display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr);
+    padding: 12px; gap: 2px; box-shadow: 0 6px 16px rgba(61,31,43,0.15);
+    transition: transform 0.15s ease;
+  }
+  .die:hover { transform: scale(1.04); }
+  .die.rolling { animation: shake 0.5s ease; }
+  @keyframes shake {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-12deg) scale(1.05); }
+    75% { transform: rotate(12deg) scale(1.05); }
+  }
+  .pip { border-radius: 50%; background: var(--plum); align-self: center; justify-self: center; width: 10px; height: 10px; opacity: 0; }
+  .pip.on { opacity: 1; }
+
+  .hint { font-size: 0.85rem; opacity: 0.6; margin-bottom: 4px; }
+
+  .result-tag {
+    display: inline-block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 3px 10px; border-radius: 999px; margin-bottom: 8px; opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .result-tag.show { opacity: 1; }
+  .result-tag.compliment { background: var(--rose); color: var(--cream); }
+  .result-tag.dare { background: var(--gold); color: var(--plum); }
+
+  .result-text {
+    font-family: 'Fraunces', serif; font-style: italic; font-size: 1.05rem; line-height: 1.5;
+    min-height: 60px; opacity: 0; transition: opacity 0.3s ease;
+  }
+  .result-text.show { opacity: 1; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card { animation: none; }
+    .die.rolling { animation: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="seal">Day 12</div>
+  <div class="card">
+    <h1>Roll the Dice</h1>
+    <p class="sub">odd number = compliment, even number = a mini dare</p>
+
+    <div class="die-wrap">
+      <div class="die" id="die">
+        <div class="pip" data-pos="1"></div><div class="pip" data-pos="2"></div><div class="pip" data-pos="3"></div>
+        <div class="pip" data-pos="4"></div><div class="pip" data-pos="5"></div><div class="pip" data-pos="6"></div>
+        <div class="pip" data-pos="7"></div><div class="pip" data-pos="8"></div><div class="pip" data-pos="9"></div>
+      </div>
+    </div>
+    <p class="hint" id="hint">tap the die to roll</p>
+
+    <div class="result-tag" id="resultTag"></div>
+    <p class="result-text" id="resultText"></p>
+  </div>
+
+<script>
+  
+  const compliments = [
+    "You make my life a bit hard kaddu😅",
+    "You're smarter than you think, just have faith in your self😊",
+    "Your laugh is one of my favorite sounds",
+    "Tu jb hasti hai na kaddu,sukun milta h dekh kai(except vo ravan wali hasi😅)",
+    "Tere sath time ka pata hee nhi chalta😘",
+    "Tu sath hoti hai toh sb bohot easy lagta,feels like i can achieve anything",
+    "I like the way you play along,when you do not understand something,It's kinda cute😘",
+  ];
+  const dares = [
+    "Seduce me,without speaking🤤",
+    "Share all of your insecurities regarding me or yourself",
+    "Send a voice note that would turn me on🫦",
+    "can i see dugu mugu🫣(you can say no,if you don't want to)",
+    "do belly dance for atleast 1 min🫣😊",
+    "click pictures in indian attire,bindi is compalsary",
+  ];
+  // ---------------------
+
+  // Pip layouts per die face (1-6), using positions 1-9 in a 3x3 grid
+  const faces = {
+    1: [5],
+    2: [1, 9],
+    3: [1, 5, 9],
+    4: [1, 3, 7, 9],
+    5: [1, 3, 5, 7, 9],
+    6: [1, 3, 4, 6, 7, 9],
+  };
+
+  const die = document.getElementById('die');
+  const hint = document.getElementById('hint');
+  const resultTag = document.getElementById('resultTag');
+  const resultText = document.getElementById('resultText');
+  const pips = document.querySelectorAll('.pip');
+
+  function showFace(n) {
+    pips.forEach(p => p.classList.remove('on'));
+    faces[n].forEach(pos => {
+      document.querySelector(`.pip[data-pos="${pos}"]`).classList.add('on');
+    });
+  }
+
+  showFace(1);
+
+  die.addEventListener('click', () => {
+    resultTag.classList.remove('show');
+    resultText.classList.remove('show');
+    die.classList.add('rolling');
+    hint.textContent = 'rolling...';
+
+    let ticks = 0;
+    const rollAnim = setInterval(() => {
+      showFace(Math.ceil(Math.random() * 6));
+      ticks++;
+      if (ticks > 8) {
+        clearInterval(rollAnim);
+        const finalRoll = Math.ceil(Math.random() * 6);
+        showFace(finalRoll);
+        die.classList.remove('rolling');
+        hint.textContent = `you rolled a ${finalRoll} — tap to roll again`;
+
+        const isOdd = finalRoll % 2 !== 0;
+        const pool = isOdd ? compliments : dares;
+        const pick = pool[Math.floor(Math.random() * pool.length)];
+
+        resultTag.textContent = isOdd ? 'Compliment' : 'Dare';
+        resultTag.className = 'result-tag show ' + (isOdd ? 'compliment' : 'dare');
+        resultText.textContent = pick;
+        resultText.classList.add('show');
+      }
+    }, 100);
+  });
+</script>
+</body>
+</html>
