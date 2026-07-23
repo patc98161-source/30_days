@@ -1,1 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 8 — Memory Match</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Work+Sans:wght@400;500&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FBF3EC; --plum: #3D1F2B; --rose: #C87A88; --gold: #D9A94E; --blush: #F3DCE1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: var(--cream); color: var(--plum);
+    font-family: 'Work Sans', sans-serif; display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  h1 { font-family: 'Fraunces', serif; font-weight: 600; margin: 0 0 8px; font-size: 1.5rem; text-align: center; }
+  p.sub { margin: 0 0 18px; opacity: 0.75; font-size: 0.9rem; text-align: center; }
+  .seal {
+    position: fixed; top: 24px; right: 24px; width: 64px; height: 64px; border-radius: 50%;
+    background: var(--gold); color: var(--cream); display: flex; align-items: center; justify-content: center;
+    font-family: 'Caveat', cursive; font-size: 1.3rem; box-shadow: 0 4px 12px rgba(61,31,43,0.25);
+    transform: rotate(-6deg); user-select: none;
+  }
+  .card-wrap {
+    background: var(--blush); border-radius: 20px; padding: 32px; max-width: 440px; width: 100%;
+    box-shadow: 0 8px 30px rgba(61,31,43,0.12); animation: rise 0.6s ease-out; text-align: center;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
+  .stats { display: flex; justify-content: center; gap: 24px; margin-bottom: 16px; font-size: 0.85rem; opacity: 0.75; }
+  .stats strong { color: var(--rose); font-family: 'Fraunces', serif; font-size: 1.1rem; }
+
+  .grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  }
+  .tile {
+    aspect-ratio: 1; border-radius: 10px; cursor: pointer; perspective: 600px;
+  }
+  .tile-inner {
+    position: relative; width: 100%; height: 100%; transition: transform 0.4s ease;
+    transform-style: preserve-3d;
+  }
+  .tile.flipped .tile-inner, .tile.matched .tile-inner { transform: rotateY(180deg); }
+  .face {
+    position: absolute; inset: 0; border-radius: 10px; backface-visibility: hidden;
+    display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
+  }
+  .face.back { background: var(--rose); color: var(--cream); font-family: 'Caveat', cursive; font-size: 1.4rem; }
+  .face.front { background: var(--cream); transform: rotateY(180deg); }
+  .tile.matched .face.front { background: #E8F0D8; }
+
+  .win-msg {
+    margin-top: 18px; font-family: 'Fraunces', serif; font-style: italic; font-size: 1.05rem;
+    opacity: 0; transition: opacity 0.4s ease; min-height: 24px;
+  }
+  .win-msg.show { opacity: 1; }
+
+  button.reset {
+    margin-top: 14px; background: var(--rose); color: var(--cream); border: none;
+    padding: 8px 22px; border-radius: 999px; font-family: 'Work Sans', sans-serif; font-size: 0.85rem;
+    cursor: pointer; display: none;
+  }
+  button.reset.show { display: inline-block; }
+  button.reset:hover { background: var(--plum); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card-wrap { animation: none; }
+    .tile-inner { transition: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="seal">Day 8</div>
+  <div class="card-wrap">
+    <h1>Memory Match</h1>
+    <p class="sub">find all 6 pairs</p>
+    <div class="stats">
+      <div>Moves <strong id="moves">0</strong></div>
+      <div>Matched <strong id="matched">0/6</strong></div>
+    </div>
+    <div class="grid" id="grid"></div>
+    <p class="win-msg" id="winMsg"></p>
+    <button class="reset" id="resetBtn">Play again</button>
+  </div>
+
+<script>
+  // ---- EDIT THIS: use emoji, or swap "content" for an <img> path if you have photos ----
+  // To use a real photo instead of an emoji, change a pair's "content" to:
+  //   { type: 'img', src: 'photos/yourfile.jpg' }
+  const pairContents = [
+    "🌻", "☕", "🎮", "🎧", "🍕", "🌙"
+  ];
+  const winLine = "Six for six — just like you always know exactly where to find me.";
+  // ----------------------------------------------------------------------------------
+
+  const grid = document.getElementById('grid');
+  const movesEl = document.getElementById('moves');
+  const matchedEl = document.getElementById('matched');
+  const winMsg = document.getElementById('winMsg');
+  const resetBtn = document.getElementById('resetBtn');
+
+  let tiles = [];
+  let flipped = [];
+  let matchedCount = 0;
+  let moves = 0;
+  let lock = false;
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function build() {
+    grid.innerHTML = '';
+    flipped = []; matchedCount = 0; moves = 0; lock = false;
+    movesEl.textContent = '0';
+    matchedEl.textContent = `0/${pairContents.length}`;
+    winMsg.classList.remove('show');
+    resetBtn.classList.remove('show');
+
+    const deck = shuffle([...pairContents, ...pairContents]);
+    tiles = deck.map((content, i) => ({ id: i, content, matched: false }));
+
+    tiles.forEach((tile) => {
+      const el = document.createElement('div');
+      el.className = 'tile';
+      el.dataset.id = tile.id;
+      el.innerHTML = `
+        <div class="tile-inner">
+          <div class="face back">?</div>
+          <div class="face front">${tile.content}</div>
+        </div>
+      `;
+      el.addEventListener('click', () => handleClick(el, tile));
+      grid.appendChild(el);
+    });
+  }
+
+  function handleClick(el, tile) {
+    if (lock || el.classList.contains('flipped') || el.classList.contains('matched')) return;
+    el.classList.add('flipped');
+    flipped.push({ el, tile });
+
+    if (flipped.length === 2) {
+      moves++;
+      movesEl.textContent = moves;
+      lock = true;
+      const [a, b] = flipped;
+      if (a.tile.content === b.tile.content) {
+        a.el.classList.add('matched');
+        b.el.classList.add('matched');
+        matchedCount++;
+        matchedEl.textContent = `${matchedCount}/${pairContents.length}`;
+        flipped = [];
+        lock = false;
+        if (matchedCount === pairContents.length) {
+          setTimeout(() => {
+            winMsg.textContent = winLine;
+            winMsg.classList.add('show');
+            resetBtn.classList.add('show');
+          }, 300);
+        }
+      } else {
+        setTimeout(() => {
+          a.el.classList.remove('flipped');
+          b.el.classList.remove('flipped');
+          flipped = [];
+          lock = false;
+        }, 700);
+      }
+    }
+  }
+
+  resetBtn.addEventListener('click', build);
+  build();
+</script>
+</body>
+</html>
