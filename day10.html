@@ -16,7 +16,7 @@
     padding: 24px;
   }
   h1 { font-family: 'Fraunces', serif; font-weight: 600; margin: 0 0 8px; font-size: 1.6rem; }
-  p.sub { margin: 0 0 20px; opacity: 0.75; font-size: 0.95rem; }
+  p.sub { margin: 0 0 20px; opacity: 0.75; font-size: 0.95rem; line-height: 1.4; }
   .seal {
     position: fixed; top: 24px; right: 24px; width: 64px; height: 64px; border-radius: 50%;
     background: var(--gold); color: var(--cream); display: flex; align-items: center; justify-content: center;
@@ -37,45 +37,39 @@
     font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em;
     opacity: 0.55; margin-bottom: 12px; text-align: center;
   }
-  .slots { display: flex; flex-direction: column; gap: 10px; }
+  .slots { display: flex; flex-direction: column; gap: 12px; }
+  .slot-group { display: flex; flex-direction: column; gap: 4px; }
+  .slot-label { font-size: 0.72rem; opacity: 0.55; padding-left: 2px; }
   .slot {
-    min-height: 48px; border: 2px dashed rgba(217,169,78,0.65); border-radius: 12px;
-    padding: 8px 12px; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px;
-    background: rgba(251,243,236,0.6); transition: border-color 0.15s ease, background 0.15s ease;
-    cursor: pointer;
+    min-height: 46px; border: 2px solid rgba(217,169,78,0.5); border-radius: 12px;
+    padding: 10px 14px; background: rgba(251,243,236,0.6);
+    font-family: 'Work Sans', sans-serif; font-size: 0.92rem; color: var(--plum);
+    width: 100%; resize: none; line-height: 1.4;
+    transition: border-color 0.15s ease, background 0.15s ease;
   }
+  .slot::placeholder { color: rgba(61,31,43,0.4); }
+  .slot:focus { outline: none; border-color: var(--rose); background: var(--cream); }
   .slot.drag-over { border-color: var(--rose); background: rgba(243,220,225,0.9); }
-  .slot.filled { border-style: solid; border-color: rgba(61,31,43,0.12); cursor: default; }
-  .slot-hint { font-size: 0.78rem; opacity: 0.45; pointer-events: none; }
-  .slot.filled .slot-hint { display: none; }
+  .slot.filled { border-style: solid; border-color: rgba(61,31,43,0.15); }
 
   .chip-bank-label {
     font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em;
-    opacity: 0.6; margin-bottom: 10px;
+    opacity: 0.6; margin-bottom: 6px;
   }
+  .chip-bank-hint { font-size: 0.76rem; opacity: 0.5; margin: 0 0 10px; }
   .chip-bank {
     display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 22px;
   }
   .chip {
     background: var(--rose); color: var(--cream); padding: 8px 14px; border-radius: 999px;
     font-size: 0.85rem; cursor: grab; user-select: none; touch-action: none;
-    transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
     box-shadow: 0 2px 8px rgba(61,31,43,0.12);
   }
   .chip:hover { transform: translateY(-2px); }
   .chip:active { cursor: grabbing; }
-  .chip.selected { outline: 3px solid var(--gold); outline-offset: 2px; transform: translateY(-2px); }
-  .chip.used { opacity: 0.35; pointer-events: none; }
-
-  .slot-chip {
-    background: var(--plum); color: var(--cream); padding: 6px 12px; border-radius: 999px;
-    font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px;
-  }
-  .slot-chip button {
-    background: none; border: none; color: var(--cream); padding: 0; font-size: 1rem;
-    line-height: 1; cursor: pointer; opacity: 0.7;
-  }
-  .slot-chip button:hover { opacity: 1; transform: none; }
+  .chip.just-used { animation: pop 0.3s ease; }
+  @keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(0.9); } 100% { transform: scale(1); } }
 
   .actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
   button {
@@ -106,26 +100,40 @@
   @media (prefers-reduced-motion: reduce) {
     .card, .letter-preview.visible { animation: none; }
     button, .chip { transition: none; }
+    .chip.just-used { animation: none; }
   }
 </style>
 </head>
 <body>
   <div class="seal">Day 10</div>
   <div class="card">
-    <h1>Build a Love Letter</h1>
-    <p class="sub">drag words into the envelope — or tap a word, then tap a line</p>
+    <h1>Your Letter</h1>
+    <p class="sub">This is a letter from me to you — but I want you to be the one who actually writes it. Type your own words on each line, or tap a phrase from the word bank below if you want a starting point.</p>
 
     <div class="envelope">
       <div class="envelope-label">Your letter</div>
       <div class="slots" id="slots">
-        <div class="slot" data-slot="0"><span class="slot-hint">Opening — how you feel</span></div>
-        <div class="slot" data-slot="1"><span class="slot-hint">Something only you would say</span></div>
-        <div class="slot" data-slot="2"><span class="slot-hint">A small detail you love</span></div>
-        <div class="slot" data-slot="3"><span class="slot-hint">How you want to end</span></div>
+        <div class="slot-group">
+          <span class="slot-label">Opening — how you're feeling right now</span>
+          <textarea class="slot" data-slot="0" rows="1" placeholder="Type here, or tap a word below..."></textarea>
+        </div>
+        <div class="slot-group">
+          <span class="slot-label">Something only you would say</span>
+          <textarea class="slot" data-slot="1" rows="1" placeholder="Type here, or tap a word below..."></textarea>
+        </div>
+        <div class="slot-group">
+          <span class="slot-label">A small detail you're grateful for</span>
+          <textarea class="slot" data-slot="2" rows="1" placeholder="Type here, or tap a word below..."></textarea>
+        </div>
+        <div class="slot-group">
+          <span class="slot-label">How you want to end it</span>
+          <textarea class="slot" data-slot="3" rows="1" placeholder="Type here, or tap a word below..."></textarea>
+        </div>
       </div>
     </div>
 
     <div class="chip-bank-label">Word bank</div>
+    <p class="chip-bank-hint">tap a line first, then tap a word to drop it in — or just type your own</p>
     <div class="chip-bank" id="chipBank"></div>
 
     <div class="actions">
@@ -141,33 +149,26 @@
   </div>
 
 <script>
-  // ---- EDIT THIS LIST WITH YOUR OWN WORDS / PHRASES ----
+
   const chips = [
     "I love you",
     "your laugh",
     "the way you listen",
-    "every ordinary Tuesday",
+    "every ordinary day together",
     "when you get excited about small things",
-    "how safe I feel with you",
-    "your terrible jokes",
-    "the look you give me when you're proud",
+    "how satisfied I feel with you",
+    "your Guglu wuglu tummy",
+    "the look you give me when you're angry",
     "that you always show up",
     "our late-night talks",
     "your patience with me",
     "how you remember the tiny details",
-    "you make hard days softer",
+    "you make hard days softer and me harder",
     "I choose you",
     "forever isn't long enough",
     "thank you for being you",
   ];
   // -------------------------------------------------------
-
-  const slotLabels = [
-    "Opening — how you feel",
-    "Something only you would say",
-    "A small detail you love",
-    "How you want to end",
-  ];
 
   const chipBank = document.getElementById('chipBank');
   const slotEls = [...document.querySelectorAll('.slot')];
@@ -177,82 +178,50 @@
   const letterText = document.getElementById('letterText');
   const statusHint = document.getElementById('statusHint');
 
-  const slotValues = [null, null, null, null];
-  let selectedChipId = null;
-  let draggedChipId = null;
+  let activeSlotIndex = 0;
+  let draggedText = null;
 
   function renderChipBank() {
     chipBank.innerHTML = '';
-    chips.forEach((text, id) => {
+    chips.forEach((text) => {
       const el = document.createElement('div');
       el.className = 'chip';
       el.draggable = true;
-      el.dataset.id = id;
       el.textContent = text;
       chipBank.appendChild(el);
     });
-    syncChipStates();
   }
 
-  function chipInUse(id) {
-    return slotValues.some((slot) => slot && slot.id === id);
+  function autoGrow(el) {
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
   }
 
-  function syncChipStates() {
-    chipBank.querySelectorAll('.chip').forEach((el) => {
-      const id = Number(el.dataset.id);
-      el.classList.toggle('used', chipInUse(id));
-      el.classList.toggle('selected', selectedChipId === id);
-    });
-    sealBtn.disabled = slotValues.some((v) => !v);
+  function firstEmptySlotIndex() {
+    const idx = slotEls.findIndex((s) => !s.value.trim());
+    return idx === -1 ? activeSlotIndex : idx;
+  }
+
+  function insertIntoSlot(index, text) {
+    const slot = slotEls[index];
+    slot.value = slot.value.trim() ? slot.value.trim() + ' ' + text : text;
+    slot.classList.add('filled');
+    autoGrow(slot);
+    syncState();
+  }
+
+  function syncState() {
+    const filledCount = slotEls.filter((s) => s.value.trim()).length;
+    sealBtn.disabled = filledCount < slotEls.length;
     statusHint.textContent = sealBtn.disabled
-      ? `Fill all four lines to seal it. (${slotValues.filter(Boolean).length}/4)`
+      ? `Fill all four lines to seal it. (${filledCount}/${slotEls.length})`
       : 'Ready when you are.';
   }
 
-  function renderSlot(index) {
-    const slot = slotEls[index];
-    const value = slotValues[index];
-    slot.innerHTML = '';
-    if (!value) {
-      slot.classList.remove('filled');
-      const hint = document.createElement('span');
-      hint.className = 'slot-hint';
-      hint.textContent = slotLabels[index];
-      slot.appendChild(hint);
-      return;
-    }
-    slot.classList.add('filled');
-    const chip = document.createElement('span');
-    chip.className = 'slot-chip';
-    chip.textContent = value.text;
-    const remove = document.createElement('button');
-    remove.type = 'button';
-    remove.setAttribute('aria-label', 'Remove word');
-    remove.textContent = '×';
-    remove.addEventListener('click', (e) => {
-      e.stopPropagation();
-      slotValues[index] = null;
-      renderSlot(index);
-      syncChipStates();
-    });
-    chip.appendChild(remove);
-    slot.appendChild(chip);
-  }
-
-  function placeChip(slotIndex, chipId) {
-    if (chipInUse(chipId)) return;
-    if (slotValues[slotIndex]) return;
-    slotValues[slotIndex] = { id: chipId, text: chips[chipId] };
-    selectedChipId = null;
-    renderSlot(slotIndex);
-    syncChipStates();
-  }
-
   function assembleLetter() {
-    const [a, b, c, d] = slotValues.map((v) => v.text);
+    const [a, b, c, d] = slotEls.map((s) => s.value.trim());
     return [
-      'Dear you,',
+      'Dear Kaddu,',
       '',
       `${a} — ${b}, and ${c}.`,
       '',
@@ -260,78 +229,66 @@
     ].join('\n');
   }
 
-  chipBank.addEventListener('click', (e) => {
-    const chip = e.target.closest('.chip');
-    if (!chip || chip.classList.contains('used')) return;
-    const id = Number(chip.dataset.id);
-    selectedChipId = selectedChipId === id ? null : id;
-    syncChipStates();
-  });
-
-  chipBank.addEventListener('dragstart', (e) => {
-    const chip = e.target.closest('.chip');
-    if (!chip || chip.classList.contains('used')) {
-      e.preventDefault();
-      return;
-    }
-    draggedChipId = Number(chip.dataset.id);
-    e.dataTransfer.setData('text/plain', String(draggedChipId));
-    e.dataTransfer.effectAllowed = 'move';
-  });
-
-  chipBank.addEventListener('dragend', () => {
-    draggedChipId = null;
-  });
-
   slotEls.forEach((slot, index) => {
-    slot.addEventListener('click', () => {
-      if (selectedChipId !== null && !slotValues[index]) {
-        placeChip(index, selectedChipId);
-      }
+    slot.addEventListener('focus', () => { activeSlotIndex = index; });
+    slot.addEventListener('input', () => {
+      slot.classList.toggle('filled', !!slot.value.trim());
+      autoGrow(slot);
+      syncState();
     });
 
     slot.addEventListener('dragover', (e) => {
       e.preventDefault();
-      if (!slotValues[index]) slot.classList.add('drag-over');
+      slot.classList.add('drag-over');
     });
-
     slot.addEventListener('dragleave', () => slot.classList.remove('drag-over'));
-
     slot.addEventListener('drop', (e) => {
       e.preventDefault();
       slot.classList.remove('drag-over');
-      const id = Number(e.dataTransfer.getData('text/plain') || draggedChipId);
-      if (Number.isNaN(id) || slotValues[index]) return;
-      placeChip(index, id);
+      const text = e.dataTransfer.getData('text/plain') || draggedText;
+      if (text) insertIntoSlot(index, text);
     });
   });
+
+  chipBank.addEventListener('click', (e) => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    const targetIndex = firstEmptySlotIndex();
+    insertIntoSlot(targetIndex, chip.textContent);
+    chip.classList.remove('just-used');
+    void chip.offsetWidth;
+    chip.classList.add('just-used');
+  });
+
+  chipBank.addEventListener('dragstart', (e) => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    draggedText = chip.textContent;
+    e.dataTransfer.setData('text/plain', draggedText);
+    e.dataTransfer.effectAllowed = 'copy';
+  });
+  chipBank.addEventListener('dragend', () => { draggedText = null; });
 
   sealBtn.addEventListener('click', () => {
     letterText.textContent = assembleLetter();
     preview.classList.add('visible');
     statusHint.textContent = 'Sealed with love.';
-    try {
-      const visited = JSON.parse(localStorage.getItem('buglu_days_visited') || '[]');
-      if (!visited.includes(10)) {
-        visited.push(10);
-        localStorage.setItem('buglu_days_visited', JSON.stringify(visited));
-      }
-    } catch (_) {}
   });
 
   resetBtn.addEventListener('click', () => {
-    for (let i = 0; i < slotValues.length; i++) {
-      slotValues[i] = null;
-      renderSlot(i);
-    }
-    selectedChipId = null;
+    slotEls.forEach((slot) => {
+      slot.value = '';
+      slot.classList.remove('filled');
+      slot.style.height = 'auto';
+    });
     preview.classList.remove('visible');
     letterText.textContent = '';
-    syncChipStates();
+    activeSlotIndex = 0;
+    syncState();
   });
 
-  slotEls.forEach((_, i) => renderSlot(i));
   renderChipBank();
+  syncState();
 </script>
 </body>
 </html>
