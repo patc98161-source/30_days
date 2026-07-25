@@ -164,10 +164,10 @@
 
 <script>
   const prompts = [
-    { label:"whisper", text:"Tell me the exact moment today you started thinking about me like that." },
+     { label:"whisper", text:"Tell me the exact moment today you started thinking about me like that." },
     { label:"confess", text:"If you could freeze one moment from today, which would it be?" },
     { label:"reveal", text:"Send a photo right now " },
-    { label:"dare", text:"Send a voice note of you saying "I miss you" in three different accents." },
+    { label:"dare", text:"Send a voice note of you saying I miss you in three different accents." },
     { label:"whisper", text:"Describe what you're imagining right now, in one slow sentence." },
     { label:"confess", text:"What's the boldest thing you've thought about saying to me tonight but haven't yet?" },
     { label:"reveal", text:"Tell me what you're wearing(a little sneek peek also), and what you'd take off first." },
@@ -176,14 +176,12 @@
     { label:"confess", text:"Rate how much you want me right now, out of ten, and explain the number." }
   ];
 
-  let usedIndices = [];
+  let currentIndex = 0;
 
   function pickPrompt(){
-    if(usedIndices.length >= prompts.length) usedIndices = [];
-    let idx;
-    do { idx = Math.floor(Math.random()*prompts.length); } while(usedIndices.includes(idx));
-    usedIndices.push(idx);
-    return prompts[idx];
+    const p = prompts[currentIndex];
+    currentIndex = (currentIndex + 1) % prompts.length;
+    return p;
   }
 
   const cardWrap = document.querySelector('.card-wrap');
