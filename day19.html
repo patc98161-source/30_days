@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Right Now, Both of Us</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Work+Sans:wght@400;500&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FBF3EC; --plum: #3D1F2B; --rose: #C87A88; --gold: #D9A94E; --blush: #F3DCE1;
+    --sky-a: #FBF3EC; --sky-b: #F3DCE1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; color: var(--plum);
+    font-family: 'Work Sans', sans-serif; display: flex; align-items: center; justify-content: center;
+    padding: 24px; transition: background 1.2s ease;
+    background: linear-gradient(160deg, var(--sky-a) 0%, var(--sky-b) 100%);
+  }
+  h1 { font-family: 'Fraunces', serif; font-weight: 600; margin: 0 0 6px; font-size: 1.4rem; text-align: center; }
+  p.sub { margin: 0 0 26px; opacity: 0.7; font-size: 0.85rem; text-align: center; }
+
+  .card {
+    background: rgba(255,255,255,0.35); backdrop-filter: blur(6px); border-radius: 24px;
+    padding: 34px 26px; max-width: 440px; width: 100%; box-shadow: 0 10px 34px rgba(61,31,43,0.14);
+    animation: rise 0.6s ease-out; text-align: center;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  .clocks-row { display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 20px; }
+  .clock-block { flex: 1; max-width: 150px; }
+  .clock-label { font-family: 'Caveat', cursive; font-size: 1.2rem; margin-bottom: 8px; opacity: 0.9; }
+
+  .dial-wrap { position: relative; width: 110px; height: 110px; margin: 0 auto 10px; }
+  .dial-bg {
+    width: 100%; height: 100%; border-radius: 50%; background: rgba(255,255,255,0.55);
+    box-shadow: inset 0 0 0 2px rgba(61,31,43,0.15), 0 4px 14px rgba(61,31,43,0.12);
+    position: relative;
+  }
+  .tick {
+    position: absolute; width: 2px; height: 8px; background: rgba(61,31,43,0.25);
+    left: 50%; top: 4px; transform-origin: 50% 51px;
+  }
+  .hand {
+    position: absolute; left: 50%; top: 50%; background: var(--plum); border-radius: 4px;
+    transform-origin: 50% 100%;
+  }
+  .hand.hour { width: 4px; height: 26px; margin-left: -2px; margin-top: -26px; background: var(--plum); }
+  .hand.minute { width: 3px; height: 38px; margin-left: -1.5px; margin-top: -38px; background: var(--rose); }
+  .dial-center {
+    position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; margin-left: -4px; margin-top: -4px;
+    background: var(--gold); border-radius: 50%;
+  }
+
+  .time-text { font-family: 'Fraunces', serif; font-size: 1.05rem; margin: 0 0 2px; }
+  .activity-text { font-size: 0.75rem; opacity: 0.65; line-height: 1.35; }
+
+  .divider { font-family: 'Caveat', cursive; font-size: 1.6rem; opacity: 0.5; padding: 0 2px; }
+
+  .connector-line {
+    border-top: 1px solid rgba(61,31,43,0.15); padding-top: 16px; margin-top: 4px;
+  }
+  .connector-line p {
+    font-family: 'Caveat', cursive; font-size: 1.25rem; line-height: 1.5; margin: 0; opacity: 0.9;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card { animation: none; }
+    body { transition: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Right Now, Both of Us</h1>
+    <p class="sub">wherever we are, this is what's true this exact minute</p>
+
+    <div class="clocks-row">
+      <div class="clock-block">
+        <div class="clock-label" id="labelYou">Me</div>
+        <div class="dial-wrap" id="dialYou"></div>
+        <p class="time-text" id="timeYou"></p>
+        <p class="activity-text" id="activityYou"></p>
+      </div>
+      <div class="divider">✦</div>
+      <div class="clock-block">
+        <div class="clock-label" id="labelHer">You</div>
+        <div class="dial-wrap" id="dialHer"></div>
+        <p class="time-text" id="timeHer"></p>
+        <p class="activity-text" id="activityHer"></p>
+      </div>
+    </div>
+
+    <div class="connector-line">
+      <p id="connectorText"></p>
+    </div>
+  </div>
+
+<script>
+ 
+  const YOU = { label: "Me, in Bengaluru", timeZone: "Asia/Kolkata" };
+  const HER = { label: "You, in Toronto", timeZone: "America/Toronto" };
+  // ---------------------
+
+  const dialYou = document.getElementById('dialYou');
+  const dialHer = document.getElementById('dialHer');
+  const timeYou = document.getElementById('timeYou');
+  const timeHer = document.getElementById('timeHer');
+  const activityYou = document.getElementById('activityYou');
+  const activityHer = document.getElementById('activityHer');
+  const labelYou = document.getElementById('labelYou');
+  const labelHer = document.getElementById('labelHer');
+  const connectorText = document.getElementById('connectorText');
+
+  labelYou.textContent = YOU.label;
+  labelHer.textContent = HER.label;
+
+  function buildDial(container) {
+    for (let i = 0; i < 12; i++) {
+      const tick = document.createElement('div');
+      tick.className = 'tick';
+      tick.style.transform = `rotate(${i * 30}deg)`;
+      container.appendChild(tick);
+    }
+    const hourHand = document.createElement('div');
+    hourHand.className = 'hand hour';
+    const minuteHand = document.createElement('div');
+    minuteHand.className = 'hand minute';
+    const center = document.createElement('div');
+    center.className = 'dial-center';
+    container.appendChild(hourHand);
+    container.appendChild(minuteHand);
+    container.appendChild(center);
+    return { hourHand, minuteHand };
+  }
+
+  const bgYou = document.createElement('div');
+  bgYou.className = 'dial-bg';
+  dialYou.appendChild(bgYou);
+  const handsYou = buildDial(bgYou);
+
+  const bgHer = document.createElement('div');
+  bgHer.className = 'dial-bg';
+  dialHer.appendChild(bgHer);
+  const handsHer = buildDial(bgHer);
+
+  function getTimeParts(timeZone) {
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone, hour: 'numeric', minute: 'numeric', hour12: false
+    });
+    const parts = formatter.formatToParts(now);
+    const hour = parseInt(parts.find(p => p.type === 'hour').value, 10) % 24;
+    const minute = parseInt(parts.find(p => p.type === 'minute').value, 10);
+    return { hour, minute };
+  }
+
+  function formatDisplay(hour, minute) {
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+    return `${displayHour}:${String(minute).padStart(2, '0')} ${period}`;
+  }
+
+  function guessActivity(hour) {
+    if (hour >= 0 && hour < 5) return "probably asleep";
+    if (hour >= 5 && hour < 7) return "probably just waking up";
+    if (hour >= 7 && hour < 9) return "probably getting ready";
+    if (hour >= 9 && hour < 13) return "probably deep in the day";
+    if (hour >= 13 && hour < 17) return "probably powering through the afternoon";
+    if (hour >= 17 && hour < 20) return "probably winding down a little";
+    if (hour >= 20 && hour < 23) return "probably relaxing this evening";
+    return "probably still up later than they should be";
+  }
+
+  function skyGradientFor(hour) {
+    if (hour >= 5 && hour < 8) return ['#F6D9C4', '#F3DCE1'];   // dawn
+    if (hour >= 8 && hour < 17) return ['#FBF3EC', '#F3DCE1'];  // day
+    if (hour >= 17 && hour < 20) return ['#F3C9B0', '#E7A9A0']; // dusk
+    return ['#2E2540', '#4A3350'];                              // night
+  }
+
+  function setHands(hands, hour, minute) {
+    const hourDeg = (hour % 12) * 30 + minute * 0.5;
+    const minuteDeg = minute * 6;
+    hands.hourHand.style.transform = `rotate(${hourDeg}deg)`;
+    hands.minuteHand.style.transform = `rotate(${minuteDeg}deg)`;
+  }
+
+  function connectorLine(hourYou, hourHer) {
+    if (YOU.timeZone === HER.timeZone) {
+      return "Same sky, same minute — at least that part isn't far apart.";
+    }
+    const diff = hourHer - hourYou;
+    if (Math.abs(diff) < 1) return "Somehow, right this minute, we're not far off at all.";
+    if (diff > 0) return `You're about ${Math.abs(diff)}h ahead of me right now — still thinking of you either way.`;
+    return `I'm about ${Math.abs(diff)}h ahead of you right now — still thinking of you either way.`;
+  }
+
+  function update() {
+    const you = getTimeParts(YOU.timeZone);
+    const her = getTimeParts(HER.timeZone);
+
+    timeYou.textContent = formatDisplay(you.hour, you.minute);
+    timeHer.textContent = formatDisplay(her.hour, her.minute);
+    activityYou.textContent = guessActivity(you.hour);
+    activityHer.textContent = guessActivity(her.hour);
+
+    setHands(handsYou, you.hour, you.minute);
+    setHands(handsHer, her.hour, her.minute);
+
+    const avgHour = (you.hour + her.hour) / 2;
+    const [skyA, skyB] = skyGradientFor(Math.round(avgHour) % 24);
+    document.documentElement.style.setProperty('--sky-a', skyA);
+    document.documentElement.style.setProperty('--sky-b', skyB);
+
+    connectorText.textContent = connectorLine(you.hour, her.hour);
+  }
+
+  update();
+  setInterval(update, 30000);
+</script>
+</body>
+</html>
