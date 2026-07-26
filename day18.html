@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 18 — Our Reading for Today</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Work+Sans:wght@400;500&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FBF3EC; --plum: #3D1F2B; --rose: #C87A88; --gold: #D9A94E; --blush: #F3DCE1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: var(--cream); color: var(--plum);
+    font-family: 'Work Sans', sans-serif; display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  h1 { font-family: 'Fraunces', serif; font-weight: 600; margin: 0 0 8px; font-size: 1.5rem; text-align: center; }
+  p.sub { margin: 0 0 20px; opacity: 0.75; font-size: 0.85rem; text-align: center; line-height: 1.4; }
+  .seal {
+    position: fixed; top: 24px; right: 24px; width: 64px; height: 64px; border-radius: 50%;
+    background: var(--gold); color: var(--cream); display: flex; align-items: center; justify-content: center;
+    font-family: 'Caveat', cursive; font-size: 1.3rem; box-shadow: 0 4px 12px rgba(61,31,43,0.25);
+    transform: rotate(-6deg); user-select: none;
+  }
+  .card {
+    background: var(--blush); border-radius: 20px; padding: 36px; max-width: 420px; width: 100%;
+    text-align: center; box-shadow: 0 8px 30px rgba(61,31,43,0.12); animation: rise 0.6s ease-out;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  .symbol { font-size: 2rem; margin-bottom: 6px; }
+
+  .date-line { font-size: 0.8rem; opacity: 0.55; margin-bottom: 18px; }
+
+  .reading {
+    background: var(--cream); border-radius: 14px; padding: 22px; min-height: 130px;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 18px;
+  }
+  .reading p {
+    font-family: 'Fraunces', serif; font-style: italic; font-size: 1.02rem; line-height: 1.65; margin: 0;
+  }
+
+  .tags { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .tag {
+    font-size: 0.72rem; background: var(--cream); padding: 4px 12px; border-radius: 999px; opacity: 0.7;
+  }
+
+  button.reveal {
+    background: var(--rose); color: var(--cream); border: none; padding: 10px 26px;
+    border-radius: 999px; font-family: 'Work Sans', sans-serif; font-weight: 500; font-size: 0.9rem; cursor: pointer;
+  }
+  button.reveal:hover { background: var(--plum); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card { animation: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="seal">Day 18</div>
+  <div class="card">
+    <div class="symbol">✦</div>
+    <h1>Our Reading for Today</h1>
+    <p class="sub">not real astrology — just something fun to open with your morning chai</p>
+    <p class="date-line" id="dateLine"></p>
+
+    <div class="reading">
+      <p id="readingText">Tap below for today's reading.</p>
+    </div>
+
+    <div class="tags" id="tags"></div>
+
+    <button class="reveal" id="revealBtn">Reveal today's reading</button>
+  </div>
+
+<script>
+  // ---- EDIT THESE — mix in real inside references if you'd like ----
+  const openers = [
+    "Venus is doing something generous for us today.",
+    "The Moon is in a mood that favors slow mornings and long calls.",
+    "Mercury's a little chaotic today, so expect at least one plan to change twice.",
+    "Jupiter's leaning in your favor — good day to ask for the thing you've been putting off.",
+    "The stars are mostly minding their business today, which is its own kind of good sign.",
+    "Saturn's taking the day off, so nothing's going to feel that heavy.",
+    "Mars is putting a little extra fire in your step today.",
+    "The sky's doing that quiet, golden-hour thing all day, even indoors.",
+    "Today has main-character energy, and you're both in it.",
+    "The universe is running slightly behind schedule, so patience is the theme.",
+    "Something in the air says today's a day for saying yes.",
+    "The constellations lined up in your favor, allegedly.",
+    "Today's forecast: mostly soft, with a chance of good news.",
+    "The Moon's asking you to slow down and actually taste your food today.",
+    "It's a low-drama day in the cosmos, which honestly, we'll take.",
+  ];
+  const middles = [
+    "Good energy for saying the honest thing instead of the easy thing.",
+    "A small disagreement today isn't a bad omen — it's just Tuesday practicing being direct.",
+    "Someone from your past may cross your mind. Let them stay there.",
+    "This is a good day to make plans neither of us backs out of later.",
+    "Today rewards patience more than urgency — don't rush the good parts.",
+    "A good day to notice the small things instead of waiting for the big ones.",
+    "Expect one moment today that makes you smile for no obvious reason.",
+    "Today's not about big gestures — it's about showing up, on time, in a good mood.",
+    "If something feels off today, say so early instead of letting it sit.",
+    "A good day to be a little braver than usual about what you want.",
+    "Today favors listening more than talking — try it and see what you learn.",
+    "Something small you've been ignoring deserves five minutes of attention today.",
+    "The day goes better if you assume good intent first, ask questions second.",
+    "Today's a good one for finishing something you started and forgot about.",
+    "Whatever's stressing you out today is smaller than it feels right now.",
+  ];
+  const closers = [
+    "Lucky color: whatever you're already wearing. Lucky person: obviously me.",
+    "Compatibility today: annoyingly high, as usual.",
+    "Advice: send the text you've been drafting in your head all day.",
+    "One thing to avoid: overthinking something that's already fine.",
+    "Overall verdict: a good day to be exactly who we are.",
+    "Lucky number: however many days until I see you next.",
+    "Fortune says: call, don't text, at least once today.",
+    "Today's mood: soft chaos, held together by us.",
+    "Recommended activity: doing absolutely nothing together, from far away.",
+    "Word of the day: 'ours.' Use it generously.",
+    "Advice: don't wait for the perfect moment to say the nice thing — say it now.",
+    "Verdict: today's a good day, and tomorrow's rigged to be better.",
+    "Lucky snack: whatever's closest and shared over video call.",
+    "Forecast: mostly you, occasionally me, always us.",
+    "Bottom line: no matter the distance, today still counted as together.",
+  ];
+  const tagPool = ["#Venus", "#RetrogradeProof", "#GoodOmen", "#ChaiHour", "#UsCoded", "#NoNotesToday", "#SoftLaunch", "#MainCharacterDay", "#ZeroDrama", "#LuckyInLove", "#SlowMorning", "#DistanceProof"];
+  // -----------------------------------------------------------------
+
+  const readingText = document.getElementById('readingText');
+  const revealBtn = document.getElementById('revealBtn');
+  const dateLine = document.getElementById('dateLine');
+  const tagsEl = document.getElementById('tags');
+
+  const today = new Date();
+  dateLine.textContent = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  function shuffleTags() {
+    const shuffled = [...tagPool].sort(() => Math.random() - 0.5).slice(0, 3);
+    tagsEl.innerHTML = shuffled.map(t => `<span class="tag">${t}</span>`).join('');
+  }
+
+  revealBtn.addEventListener('click', () => {
+    readingText.textContent = `${pick(openers)} ${pick(middles)} ${pick(closers)}`;
+    shuffleTags();
+    revealBtn.textContent = 'Read again';
+  });
+</script>
+</body>
+</html>
