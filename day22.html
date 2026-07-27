@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Happy Birthday, Kaddu</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Work+Sans:wght@300;400;500&family=Caveat:wght@500;700&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#fff5f7;
+    --plum:#7a2142;
+    --rose:#e8748f;
+    --gold:#f0a8bb;
+    --blush:#ffd6e3;
+    --ink:#4a1f2e;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background: radial-gradient(ellipse at top, var(--blush) 0%, var(--cream) 55%);
+    font-family:'Work Sans', sans-serif;
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:40px 20px;
+  }
+
+  .seal{
+    width:56px;height:56px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #ffc9d9, var(--gold) 70%);
+    box-shadow:0 3px 8px rgba(122,33,66,0.3), inset 0 0 0 2px rgba(255,255,255,0.25);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces', serif;
+    color:var(--plum);
+    font-size:1.4rem;
+    margin-bottom:18px;
+    animation:spin-in 1.1s ease-out;
+    cursor:pointer;
+    transition:transform 0.2s ease;
+  }
+  .seal:hover{ transform:scale(1.06); }
+  @keyframes spin-in{
+    from{transform:rotate(-200deg) scale(0.4);opacity:0;}
+    to{transform:rotate(0) scale(1);opacity:1;}
+  }
+
+  .envelope-stage{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  .subtitle{
+    font-family:'Caveat', cursive;
+    font-size:1.3rem;
+    color:var(--rose);
+    margin-bottom:6px;
+    text-align:center;
+  }
+  .hint{
+    font-family:'Work Sans';
+    font-size:0.85rem;
+    color:var(--rose);
+    opacity:0.8;
+    text-align:center;
+  }
+
+  .stage{
+    perspective:1800px;
+    width:min(92vw, 460px);
+    height:140px;
+    transition:height 0.3s ease;
+  }
+  .card{
+    width:100%;
+    height:100%;
+    position:relative;
+    transform-style:preserve-3d;
+    transition:transform 0.9s cubic-bezier(.4,.2,.2,1);
+    display:none;
+  }
+  .card.show{ display:block; }
+  .card.flipped{ transform:rotateY(180deg); }
+
+  .face{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    border-radius:20px;
+    backface-visibility:hidden;
+    background:var(--cream);
+    border:1.5px solid var(--gold);
+    box-shadow:0 16px 36px rgba(122,33,66,0.18);
+    padding:40px 34px 30px;
+    display:flex;
+    flex-direction:column;
+  }
+  .back{
+    transform:rotateY(180deg);
+  }
+
+  .card-title{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:1.35rem;
+    color:var(--plum);
+    text-align:center;
+    margin-bottom:22px;
+  }
+  .poem{
+    flex:1;
+    font-size:1.1rem;
+    line-height:2;
+    color:var(--ink);
+    white-space:pre-wrap;
+  }
+  .poem.hindi{
+    font-family:'Noto Sans Devanagari', 'Fraunces', serif;
+    font-size:1.15rem;
+  }
+  .poem.english{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+  }
+  .cursor{
+    display:inline-block;
+    width:2px;
+    background:var(--rose);
+    margin-left:1px;
+    animation:blink 0.9s steps(1) infinite;
+  }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .signature{
+    font-family:'Caveat', cursive;
+    font-size:1.3rem;
+    color:var(--rose);
+    text-align:right;
+    margin-top:14px;
+    opacity:0;
+    transition:opacity 1s ease;
+  }
+  .signature.show{ opacity:1; }
+
+  .controls{
+    display:flex;
+    gap:12px;
+    margin-top:22px;
+  }
+  .toggle-btn{
+    font-family:'Work Sans';
+    font-size:0.88rem;
+    padding:10px 20px;
+    border-radius:30px;
+    border:1.5px solid var(--rose);
+    background:transparent;
+    color:var(--plum);
+    cursor:pointer;
+    transition:background 0.2s ease, color 0.2s ease;
+    opacity:0;
+  }
+  .toggle-btn.show{ opacity:1; }
+  .toggle-btn.active{
+    background:var(--rose);
+    color:var(--cream);
+  }
+  .toggle-btn:hover{ background:var(--rose); color:var(--cream); }
+
+  .replay-btn{
+    font-family:'Work Sans';
+    font-size:0.88rem;
+    padding:10px 20px;
+    border-radius:30px;
+    border:none;
+    background:var(--gold);
+    color:var(--plum);
+    cursor:pointer;
+    opacity:0;
+    transition:opacity 0.6s ease, transform 0.2s ease;
+  }
+  .replay-btn.show{ opacity:1; }
+  .replay-btn:hover{ transform:translateY(-2px); }
+</style>
+</head>
+<body>
+
+  <div class="envelope-stage" id="envelope-stage">
+    <div class="seal" id="seal-btn">✦</div>
+    <div class="subtitle">for you, Kaddu</div>
+    <div class="hint">tap the seal to open</div>
+  </div>
+
+  <div class="stage">
+    <div class="card" id="card">
+      <div class="face front">
+        <div class="poem hindi" id="poem-hindi"></div>
+        <div class="signature" id="signature-hindi">— Satyam</div>
+      </div>
+      <div class="face back">
+        <div class="poem english" id="poem-english"></div>
+        <div class="signature" id="signature-english">— always yours Satyam</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="toggle-btn active" id="hindi-btn">हिंदी</button>
+    <button class="toggle-btn" id="english-btn">English</button>
+    <button class="replay-btn" id="replay-btn">Read Again</button>
+  </div>
+
+<script>
+  const hindiLines = [
+    "छह बरस की ख़ामोशी में, हर लफ़्ज़ दबा के रखा था,",
+    "हिम्मत ना थी, कद्दू, तुझसे मुबारक़ कहने की।",
+    "दो अक्टूबर की वो शाम, नई शुरुआत बन गई,",
+    "फ़ासलों में भी अब मोहब्बत, इतनी क़रीब लगती है।",
+    "जब उलझ जाए तेरी नज़र, समझ ना आए कुछ तुझे,",
+    "वो मासूम सी सूरत, दिल को सुकून देती है।",
+    "तुझे देख के कुछ कुछ होता है, कद्दू,",
+    "तेरी मुस्कुराहट में मेरी हर शाम बसती है।",
+    "इस बार, बिना डर के, दिल से यही दुआ है मेरी —",
+    "जन्मदिन मुबारक़ हो, कद्दू, हर ख़ुशी तेरे नाम लिखी है।"
+  ];
+
+  const englishLines = [
+    "In six years of silence, I kept every word pressed down inside,",
+    "I never had the courage, Kaddu, to wish you well.",
+    "That evening on the second of October became a brand new start,",
+    "Even across the distance, love now feels so near.",
+    "When your gaze gets lost, when nothing quite makes sense to you,",
+    "That innocent face still brings peace to my heart.",
+    "Something stirs in me when I see you, Kaddu,",
+    "My every evening lives inside your smile.",
+    "This time, without any fear, this is my prayer from the heart \u2014",
+    "Happy birthday, Kaddu, every happiness is written in your name."
+  ];
+
+  const envelopeStage = document.getElementById('envelope-stage');
+  const card = document.getElementById('card');
+  const sealBtn = document.getElementById('seal-btn');
+  const hindiBtn = document.getElementById('hindi-btn');
+  const englishBtn = document.getElementById('english-btn');
+  const replayBtn = document.getElementById('replay-btn');
+
+  const poemHindiEl = document.getElementById('poem-hindi');
+  const poemEnglishEl = document.getElementById('poem-english');
+  const sigHindi = document.getElementById('signature-hindi');
+  const sigEnglish = document.getElementById('signature-english');
+  const stageEl = document.querySelector('.stage');
+
+  let currentSide = 'hindi';
+  let typing = false;
+
+  function sizeStageToFace(faceEl){
+    const needed = faceEl.scrollHeight + 8;
+    const current = parseInt(stageEl.style.height, 10) || 0;
+    if(needed > current){
+      stageEl.style.height = needed + 'px';
+    }
+  }
+
+  function typewriterInto(faceEl, el, lines, sigEl, onDone){
+    el.innerHTML = '';
+    sigEl.classList.remove('show');
+    stageEl.style.height = '140px';
+
+    const cursor = document.createElement('span');
+    cursor.className = 'cursor';
+    cursor.textContent = '\u00A0';
+    el.appendChild(cursor);
+
+    const fullText = lines.join('\n');
+    let i = 0;
+    typing = true;
+
+    function typeChar(){
+      if(i < fullText.length){
+        const ch = fullText[i];
+        cursor.insertAdjacentText('beforebegin', ch);
+        i++;
+        sizeStageToFace(faceEl);
+        const delay = ch === '\n' ? 260 : (26 + Math.random()*32);
+        setTimeout(typeChar, delay);
+      } else {
+        cursor.remove();
+        typing = false;
+        sizeStageToFace(faceEl);
+        setTimeout(() => {
+          sigEl.classList.add('show');
+          sizeStageToFace(faceEl);
+          hindiBtn.classList.add('show');
+          englishBtn.classList.add('show');
+          replayBtn.classList.add('show');
+          if(onDone) onDone();
+        }, 250);
+      }
+    }
+    typeChar();
+  }
+
+  function playSide(side){
+    hindiBtn.classList.remove('show');
+    englishBtn.classList.remove('show');
+    replayBtn.classList.remove('show');
+    if(side === 'hindi'){
+      hindiBtn.classList.add('active');
+      englishBtn.classList.remove('active');
+      typewriterInto(document.querySelector('.face.front'), poemHindiEl, hindiLines, sigHindi);
+    } else {
+      englishBtn.classList.add('active');
+      hindiBtn.classList.remove('active');
+      typewriterInto(document.querySelector('.face.back'), poemEnglishEl, englishLines, sigEnglish);
+    }
+  }
+
+  sealBtn.addEventListener('click', () => {
+    envelopeStage.style.display = 'none';
+    card.classList.add('show');
+    setTimeout(() => playSide('hindi'), 400);
+  });
+
+  hindiBtn.addEventListener('click', () => {
+    if(typing || currentSide === 'hindi') { if(!typing) playSide('hindi'); return; }
+    currentSide = 'hindi';
+    card.classList.remove('flipped');
+    setTimeout(() => playSide('hindi'), 500);
+  });
+
+  englishBtn.addEventListener('click', () => {
+    if(typing) return;
+    if(currentSide === 'english'){ playSide('english'); return; }
+    currentSide = 'english';
+    card.classList.add('flipped');
+    setTimeout(() => playSide('english'), 500);
+  });
+
+  replayBtn.addEventListener('click', () => {
+    if(typing) return;
+    playSide(currentSide);
+  });
+</script>
+
+</body>
+</html>
