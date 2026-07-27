@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 21 — Things To Do Together</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Work+Sans:wght@400;500&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FBF3EC; --plum: #3D1F2B; --rose: #C87A88; --gold: #D9A94E; --blush: #F3DCE1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: var(--cream); color: var(--plum);
+    font-family: 'Work Sans', sans-serif; display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  h1 { font-family: 'Fraunces', serif; font-weight: 600; margin: 0 0 8px; font-size: 1.5rem; text-align: center; }
+  p.sub { margin: 0 0 20px; opacity: 0.75; font-size: 0.85rem; text-align: center; line-height: 1.4; }
+  .seal {
+    position: fixed; top: 24px; right: 24px; width: 64px; height: 64px; border-radius: 50%;
+    background: var(--gold); color: var(--cream); display: flex; align-items: center; justify-content: center;
+    font-family: 'Caveat', cursive; font-size: 1.3rem; box-shadow: 0 4px 12px rgba(61,31,43,0.25);
+    transform: rotate(-6deg); user-select: none;
+  }
+  .card {
+    background: var(--blush); border-radius: 20px; padding: 28px; max-width: 440px; width: 100%;
+    box-shadow: 0 8px 30px rgba(61,31,43,0.12); animation: rise 0.6s ease-out;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  .progress-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .progress-track { flex: 1; height: 6px; background: var(--cream); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--rose); width: 0%; transition: width 0.3s ease; }
+  .progress-label { font-size: 0.75rem; opacity: 0.6; white-space: nowrap; }
+
+  .add-row { display: flex; gap: 8px; margin-bottom: 16px; }
+  .add-row input {
+    flex: 1; background: var(--cream); border: 1px solid transparent; border-radius: 10px;
+    padding: 10px 14px; font-family: 'Work Sans', sans-serif; font-size: 0.88rem; color: var(--plum);
+  }
+  .add-row input:focus { outline: none; border-color: var(--rose); }
+  .add-row button {
+    background: var(--rose); color: var(--cream); border: none; border-radius: 10px;
+    padding: 0 18px; font-size: 1.1rem; cursor: pointer;
+  }
+  .add-row button:hover { background: var(--plum); }
+
+  .list { display: flex; flex-direction: column; gap: 8px; }
+  .list-item {
+    display: flex; align-items: center; gap: 10px; background: var(--cream); border-radius: 10px;
+    padding: 11px 14px;
+  }
+  .list-item .check {
+    width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--rose); flex-shrink: 0;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: var(--cream);
+  }
+  .list-item.done .check { background: var(--rose); }
+  .list-item .text { flex: 1; font-size: 0.88rem; }
+  .list-item.done .text { text-decoration: line-through; opacity: 0.45; }
+  .list-item .remove {
+    background: none; border: none; color: rgba(61,31,43,0.35); cursor: pointer; font-size: 1rem; padding: 0 2px;
+  }
+  .list-item .remove:hover { color: var(--plum); }
+
+  .empty-msg { text-align: center; font-size: 0.85rem; opacity: 0.5; padding: 12px 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card { animation: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="seal">Day 21</div>
+  <div class="card">
+    <h1>Things To Do Together</h1>
+    <p class="sub">a running list — add to it whenever something comes to mind, check things off when we actually do them</p>
+
+    <div class="progress-row">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <span class="progress-label" id="progressLabel">0 of 0 done</span>
+    </div>
+
+    <div class="add-row">
+      <input type="text" id="newItem" placeholder="add something...">
+      <button id="addBtn">+</button>
+    </div>
+
+    <div class="list" id="list"></div>
+  </div>
+
+<script>
+  
+  const defaultItems = [
+    { text: "Finally take that trip we keep talking about", done: false },
+    { text: "Cook a full meal together, start to finish", done: false },
+    { text: "Watch the sunrise/sunset together in person", done: false },
+   
+    { text: "Close the distance, even just for a visit", done: false },
+  ];
+  // ------------------------------------------------------------
+
+  const STORAGE_KEY = 'thingsToDoTogether_day21';
+  const listEl = document.getElementById('list');
+  const newItemInput = document.getElementById('newItem');
+  const addBtn = document.getElementById('addBtn');
+  const progressFill = document.getElementById('progressFill');
+  const progressLabel = document.getElementById('progressLabel');
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [...defaultItems];
+    } catch {
+      return [...defaultItems];
+    }
+  }
+
+  function save(items) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch {}
+  }
+
+  let items = load();
+
+  function render() {
+    listEl.innerHTML = '';
+    if (items.length === 0) {
+      listEl.innerHTML = '<p class="empty-msg">nothing on the list yet — add the first thing</p>';
+    }
+    items.forEach((item, i) => {
+      const row = document.createElement('div');
+      row.className = 'list-item' + (item.done ? ' done' : '');
+      row.innerHTML = `
+        <div class="check">${item.done ? '✓' : ''}</div>
+        <div class="text">${item.text}</div>
+        <button class="remove">✕</button>
+      `;
+      row.querySelector('.check').addEventListener('click', () => {
+        items[i].done = !items[i].done;
+        save(items);
+        render();
+      });
+      row.querySelector('.remove').addEventListener('click', () => {
+        items.splice(i, 1);
+        save(items);
+        render();
+      });
+      listEl.appendChild(row);
+    });
+
+    const doneCount = items.filter(i => i.done).length;
+    const pct = items.length ? (doneCount / items.length) * 100 : 0;
+    progressFill.style.width = pct + '%';
+    progressLabel.textContent = `${doneCount} of ${items.length} done`;
+  }
+
+  function addItem() {
+    const text = newItemInput.value.trim();
+    if (!text) return;
+    items.push({ text, done: false });
+    save(items);
+    newItemInput.value = '';
+    render();
+  }
+
+  addBtn.addEventListener('click', addItem);
+  newItemInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') addItem(); });
+
+  render();
+</script>
+</body>
+</html>
