@@ -77,7 +77,9 @@
   </div>
 
 <script>
-
+  // ---- EDIT THIS ENTIRE CONVERSATION TREE ----
+  // Each node has a "them" line (the reply) and a list of "options" leading to other nodes.
+  // "end: true" nodes have no further options.
   const nodes = {
     start: {
       them: "Hi. It's us — a little further down the road than you are right now. Ask me something.",
@@ -98,35 +100,35 @@
       ]
     },
     same: {
-      them: "The way you laugh,Merko maarne kai plans,Thats never changed. Some things about us are just permanent, and I'm greatfull for that",
+      them: "The way you laugh,merko maarne ki planning,Aur ha tu bohot romantic ho gayi h Kaddu,And we love each other a lot more.",
       options: [
         { label: "What took the longest to get right?", next: "hardest" },
         { label: "Any advice for right now?", next: "advice" },
       ]
     },
     hardest: {
-      them: "Learning that not every hard conversation is a bad sign. Some of the best years came right after the ones where we almost gave up on explaining ourselves and didn't.",
+      them: "Learning that not every hard conversation is a bad sign. Some of the best years came right after the ones where we almost gave up on ourselves and didn't.",
       options: [
         { label: "Are we okay?", next: "okay" },
         { label: "Any advice for right now?", next: "advice" },
       ]
     },
     missYou: {
-      them: "Honestly? The version of you that doesn't know yet how this all turns out. There's something I miss about the not-knowing expression you had — the hoping was its own kind of good.",
+      them: "Honestly? The version of you that doesn't know yet how this all turns out. There's something I miss about the not-knowing expression of yours — the hoping was its own kind of good.",
       options: [
         { label: "Is there a moment you still think about?", next: "moment" },
         { label: "Any advice for right now?", next: "advice" },
       ]
     },
     moment: {
-      them: "More than one, but if I had to pick — an ordinary video call, nothing special was even said. I just remember thinking, quietly, that I wanted a lot more of exactly that.",
+      them: "More than one, but if I had to pick — an ordinary phone call,where we fight over silly things,The very first time when i saw dugu mugu and your playalong expression",
       options: [
         { label: "Do you have any regrets?", next: "regret" },
         { label: "Any advice for right now?", next: "advice" },
       ]
     },
     regret: {
-      them: "Only that I let fear slow me down more than it needed to. Waiting felt safe at the time. Looking back, the waiting was never the safe choice — it just felt that way.",
+      them: "Only that we let fear slow us down more than it needs to. Waiting felt safe at the time. Looking back, the waiting was never the safe choice — it just felt that way.",
       options: [
         { label: "Any advice for right now?", next: "advice" },
       ]
@@ -147,21 +149,18 @@
   const chat = document.getElementById('chat');
   const choicesEl = document.getElementById('choices');
   const restartBtn = document.getElementById('restartBtn');
-  const visitedThemLines = new Set();
 
   function addBubble(text, who) {
     const b = document.createElement('div');
     b.className = 'bubble ' + who;
     b.textContent = text;
     chat.appendChild(b);
+    chat.scrollTop = chat.scrollHeight;
   }
 
   function renderNode(key) {
     const node = nodes[key];
-    if (!visitedThemLines.has(key)) {
-      addBubble(node.them, 'them');
-      visitedThemLines.add(key);
-    }
+    addBubble(node.them, 'them');
 
     choicesEl.innerHTML = '';
     if (node.end) {
@@ -185,7 +184,6 @@
 
   function start() {
     chat.innerHTML = '';
-    visitedThemLines.clear();
     renderNode('start');
   }
 
