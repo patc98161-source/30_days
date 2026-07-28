@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 25 · Tug of Love</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;1,500&family=Work+Sans:wght@300;400;500&family=Caveat:wght@500;600&display=swap');
+
+  :root{
+    --cream:#faf3ea;
+    --plum:#4a3350;
+    --rose:#c98a9c;
+    --gold:#c9a24b;
+    --blush:#f1dcd5;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+
+  body{
+    min-height:100vh;
+    background:linear-gradient(160deg, var(--cream) 0%, var(--blush) 100%);
+    font-family:'Work Sans', sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    position:relative;
+  }
+
+  .badge{
+    position:absolute;
+    top:24px;
+    right:24px;
+    width:56px;
+    height:56px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #e0bb5f, var(--gold) 60%, #8a6d2c 100%);
+    box-shadow:0 4px 14px rgba(0,0,0,0.25), inset 0 2px 4px rgba(255,255,255,0.3);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    color:#3a2c10;
+    font-size:20px;
+    animation:spin-slow 14s linear infinite;
+    z-index:10;
+  }
+  @keyframes spin-slow{ from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+  .badge span{animation:counter-spin-slow 14s linear infinite;}
+  @keyframes counter-spin-slow{ from{transform:rotate(0deg);} to{transform:rotate(-360deg);} }
+
+  .stage{
+    width:min(90vw, 640px);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:28px;
+  }
+
+  .header{ text-align:center; color:var(--plum); }
+  .header .day{
+    font-family:'Caveat', cursive;
+    font-size:1.5rem;
+    color:var(--rose);
+  }
+  .header h1{
+    font-family:'Fraunces', serif;
+    font-weight:400;
+    font-style:italic;
+    font-size:1.8rem;
+    margin-top:2px;
+  }
+  .instructions{
+    font-size:0.9rem;
+    color:#8a7488;
+    margin-top:8px;
+    font-weight:300;
+  }
+
+  .track-wrap{
+    width:100%;
+    position:relative;
+    padding:30px 0;
+  }
+
+  .labels{
+    display:flex;
+    justify-content:space-between;
+    width:100%;
+    font-family:'Caveat', cursive;
+    font-size:1.4rem;
+    color:var(--plum);
+    margin-bottom:10px;
+  }
+  .labels .left{ color:#a08fa3; }
+  .labels .right{ color:var(--rose); }
+
+  .track{
+    position:relative;
+    width:100%;
+    height:14px;
+    background:linear-gradient(90deg, #cbb9c9, var(--blush));
+    border-radius:20px;
+    box-shadow:inset 0 2px 5px rgba(0,0,0,0.12);
+  }
+
+  .fill{
+    position:absolute;
+    left:0; top:0; bottom:0;
+    width:50%;
+    background:linear-gradient(90deg, var(--rose), var(--gold));
+    border-radius:20px;
+    transition:width 0.08s linear;
+  }
+
+  .rope-handle{
+    position:absolute;
+    top:50%;
+    left:50%;
+    width:46px;
+    height:46px;
+    margin-left:-23px;
+    margin-top:-23px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff, var(--rose) 70%);
+    box-shadow:0 6px 16px rgba(0,0,0,0.25);
+    cursor:grab;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.2rem;
+    user-select:none;
+    touch-action:none;
+    transition:transform 0.15s ease;
+  }
+  .rope-handle:active{ cursor:grabbing; transform:translate(-50%,-50%) scale(1.08); }
+
+  .hint{
+    font-size:0.8rem;
+    color:#a08fa3;
+    text-align:center;
+    font-weight:300;
+  }
+
+  .reveal{
+    position:fixed;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:30px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 1s ease;
+    background:rgba(74,51,80,0.35);
+    z-index:20;
+  }
+  .reveal.show{ opacity:1; pointer-events:auto; }
+  .reveal-card{
+    background:linear-gradient(160deg, var(--cream), var(--blush));
+    border-radius:18px;
+    padding:40px 34px;
+    max-width:440px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.35);
+    border:1px solid rgba(201,162,75,0.4);
+    text-align:center;
+  }
+  .reveal-card .glyph{ font-size:2.2rem; color:var(--rose); margin-bottom:10px; }
+  .reveal-card p{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-size:1.2rem;
+    line-height:1.6;
+    color:var(--plum);
+  }
+  .reveal-card .sign{
+    margin-top:16px;
+    font-family:'Caveat', cursive;
+    font-size:1.3rem;
+    color:var(--rose);
+  }
+</style>
+</head>
+<body>
+
+  <div class="badge"><span>25</span></div>
+
+  <div class="stage">
+    <div class="header">
+      <div class="day">Day Twenty five</div>
+      <h1>Tug of Love</h1>
+      <div class="instructions">Pull the rope all the way to your side — let's close the distance</div>
+    </div>
+
+    <div class="track-wrap">
+      <div class="labels">
+        <span class="left">the distance</span>
+        <span class="right">us</span>
+      </div>
+      <div class="track" id="track">
+        <div class="fill" id="fill"></div>
+        <div class="rope-handle" id="handle">💞</div>
+      </div>
+    </div>
+
+    <div class="hint" id="hint">drag the heart all the way to the right</div>
+  </div>
+
+  <div class="reveal" id="reveal">
+    <div class="reveal-card">
+      <div class="glyph">✦</div>
+      <p>Every inch you just pulled? That's what we do in real life too — a little effort, every day, until the distance gives up before we do.</p>
+      <div class="sign">— pulling toward us, always</div>
+    </div>
+  </div>
+
+<script>
+  const track = document.getElementById('track');
+  const handle = document.getElementById('handle');
+  const fill = document.getElementById('fill');
+  const hint = document.getElementById('hint');
+  const reveal = document.getElementById('reveal');
+
+  let dragging = false;
+  let won = false;
+  let progress = 50;
+  let lastX = null;
+  let hitPullback = false;
+
+  function render(){
+    const clamped = Math.max(0, Math.min(100, progress));
+    handle.style.left = clamped + '%';
+    fill.style.width = clamped + '%';
+  }
+
+  function startDrag(e){
+    if(won) return;
+    dragging = true;
+    lastX = e.touches ? e.touches[0].clientX : e.clientX;
+    handle.style.transition = 'none';
+  }
+
+  function moveDrag(e){
+    if(!dragging || won) return;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const dx = clientX - lastX;
+    lastX = clientX;
+
+    // convert raw pixel movement into a small, damped nudge — "little by little"
+    const trackWidth = track.getBoundingClientRect().width;
+    const nudge = (dx / trackWidth) * 100 * 0.35;
+
+    progress += nudge;
+    progress = Math.max(0, Math.min(100, progress));
+    render();
+
+    if(progress >= 80 && !hitPullback){
+      hitPullback = true;
+      dragging = false;
+      hint.textContent = "so close — but the distance pulled back. try again!";
+      handle.style.transition = 'left 0.5s cubic-bezier(.34,1.56,.64,1)';
+      progress = 45;
+      render();
+      return;
+    }
+
+    if(progress >= 100 && hitPullback && !won){
+      won = true;
+      dragging = false;
+      hint.textContent = "you did it 🤍";
+      setTimeout(() => reveal.classList.add('show'), 700);
+    }
+  }
+
+  function endDrag(){
+    if(!dragging) return;
+    dragging = false;
+    handle.style.transition = 'left 0.3s ease';
+    // gentle settle-back when let go without reaching a milestone, simulating resistance
+    if(!won){
+      progress = Math.max(0, progress - 6);
+      render();
+    }
+  }
+
+  handle.addEventListener('mousedown', startDrag);
+  handle.addEventListener('touchstart', startDrag, {passive:true});
+  window.addEventListener('mousemove', moveDrag);
+  window.addEventListener('touchmove', moveDrag, {passive:true});
+  window.addEventListener('mouseup', endDrag);
+  window.addEventListener('touchend', endDrag);
+
+  render();
+</script>
+
+</body>
+</html>
