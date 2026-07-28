@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 23 — A Message From Future Us</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Work+Sans:wght@400;500&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FBF3EC; --plum: #3D1F2B; --rose: #C87A88; --gold: #D9A94E; --blush: #F3DCE1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: var(--cream); color: var(--plum);
+    font-family: 'Work Sans', sans-serif; display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  h1 { font-family: 'Fraunces', serif; font-weight: 600; margin: 0 0 8px; font-size: 1.4rem; text-align: center; }
+  p.sub { margin: 0 0 18px; opacity: 0.75; font-size: 0.85rem; text-align: center; }
+  .seal {
+    position: fixed; top: 24px; right: 24px; width: 64px; height: 64px; border-radius: 50%;
+    background: var(--gold); color: var(--cream); display: flex; align-items: center; justify-content: center;
+    font-family: 'Caveat', cursive; font-size: 1.3rem; box-shadow: 0 4px 12px rgba(61,31,43,0.25);
+    transform: rotate(-6deg); user-select: none;
+  }
+  .card {
+    background: var(--blush); border-radius: 20px; padding: 26px; max-width: 420px; width: 100%;
+    box-shadow: 0 8px 30px rgba(61,31,43,0.12); animation: rise 0.6s ease-out;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  .chat {
+    display: flex; flex-direction: column; gap: 10px; min-height: 220px; margin-bottom: 14px;
+  }
+  .bubble {
+    max-width: 82%; padding: 10px 14px; border-radius: 14px; font-size: 0.9rem; line-height: 1.45;
+    animation: pop 0.25s ease-out;
+  }
+  @keyframes pop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .bubble.them {
+    background: var(--rose); color: var(--cream); align-self: flex-start; border-bottom-left-radius: 4px;
+    font-family: 'Fraunces', serif; font-style: italic;
+  }
+  .bubble.you {
+    background: var(--cream); color: var(--plum); align-self: flex-end; border-bottom-right-radius: 4px;
+  }
+
+  .choices { display: flex; flex-direction: column; gap: 8px; }
+  .choice-btn {
+    background: var(--cream); border: 1px solid transparent; border-radius: 10px; padding: 10px 14px;
+    text-align: left; font-family: 'Work Sans', sans-serif; font-size: 0.88rem; color: var(--plum);
+    cursor: pointer; transition: border-color 0.15s ease;
+  }
+  .choice-btn:hover { border-color: var(--rose); }
+  .choice-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+  .restart-btn {
+    display: none; margin: 6px auto 0; background: none; border: none; color: var(--rose);
+    font-family: 'Work Sans', sans-serif; font-size: 0.82rem; text-decoration: underline; cursor: pointer;
+  }
+  .restart-btn.show { display: block; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card { animation: none; }
+    .bubble { animation: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="seal">Day 15</div>
+  <div class="card">
+    <h1>A Message From Future Us</h1>
+    <p class="sub">pick what you want to ask</p>
+    <div class="chat" id="chat"></div>
+    <div class="choices" id="choices"></div>
+    <button class="restart-btn" id="restartBtn">Start over</button>
+  </div>
+
+<script>
+
+  const nodes = {
+    start: {
+      them: "Hi. It's us — a little further down the road than you are right now. Ask me something.",
+      options: [
+        { label: "Are we okay?", next: "okay" },
+        { label: "What's still the same?", next: "same" },
+        { label: "What took the longest to get right?", next: "hardest" },
+        { label: "What do you miss most about me?", next: "missYou" },
+        { label: "Is there a moment you still think about?", next: "moment" },
+        { label: "Do you have any regrets?", next: "regret" },
+      ]
+    },
+    okay: {
+      them: "More than okay. There were rough patches — every real thing has them — but we kept choosing each other through the boring parts too, not just the easy ones.",
+      options: [
+        { label: "What's still the same?", next: "same" },
+        { label: "Any advice for right now?", next: "advice" },
+      ]
+    },
+    same: {
+      them: "The way you laugh,Merko maarne kai plans,Thats never changed. Some things about us are just permanent, and I'm greatfull for that",
+      options: [
+        { label: "What took the longest to get right?", next: "hardest" },
+        { label: "Any advice for right now?", next: "advice" },
+      ]
+    },
+    hardest: {
+      them: "Learning that not every hard conversation is a bad sign. Some of the best years came right after the ones where we almost gave up on explaining ourselves and didn't.",
+      options: [
+        { label: "Are we okay?", next: "okay" },
+        { label: "Any advice for right now?", next: "advice" },
+      ]
+    },
+    missYou: {
+      them: "Honestly? The version of you that doesn't know yet how this all turns out. There's something I miss about the not-knowing expression you had — the hoping was its own kind of good.",
+      options: [
+        { label: "Is there a moment you still think about?", next: "moment" },
+        { label: "Any advice for right now?", next: "advice" },
+      ]
+    },
+    moment: {
+      them: "More than one, but if I had to pick — an ordinary video call, nothing special was even said. I just remember thinking, quietly, that I wanted a lot more of exactly that.",
+      options: [
+        { label: "Do you have any regrets?", next: "regret" },
+        { label: "Any advice for right now?", next: "advice" },
+      ]
+    },
+    regret: {
+      them: "Only that I let fear slow me down more than it needed to. Waiting felt safe at the time. Looking back, the waiting was never the safe choice — it just felt that way.",
+      options: [
+        { label: "Any advice for right now?", next: "advice" },
+      ]
+    },
+    advice: {
+      them: "Don't wait for the right moment to say the true thing. Say it now, even clumsily. Future us is grateful every time past us did.",
+      options: [
+        { label: "One more thing before I go?", next: "closing" },
+      ]
+    },
+    closing: {
+      them: "Just this: whatever's scaring you into silence right now — say it anyway. That's the whole secret, really. We figured that much out, eventually.",
+      end: true
+    }
+  };
+  // ----------------------------------------------
+
+  const chat = document.getElementById('chat');
+  const choicesEl = document.getElementById('choices');
+  const restartBtn = document.getElementById('restartBtn');
+  const visitedThemLines = new Set();
+
+  function addBubble(text, who) {
+    const b = document.createElement('div');
+    b.className = 'bubble ' + who;
+    b.textContent = text;
+    chat.appendChild(b);
+  }
+
+  function renderNode(key) {
+    const node = nodes[key];
+    if (!visitedThemLines.has(key)) {
+      addBubble(node.them, 'them');
+      visitedThemLines.add(key);
+    }
+
+    choicesEl.innerHTML = '';
+    if (node.end) {
+      restartBtn.classList.add('show');
+      return;
+    }
+    restartBtn.classList.remove('show');
+
+    node.options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.textContent = opt.label;
+      btn.addEventListener('click', () => {
+        addBubble(opt.label, 'you');
+        choicesEl.innerHTML = '';
+        setTimeout(() => renderNode(opt.next), 300);
+      });
+      choicesEl.appendChild(btn);
+    });
+  }
+
+  function start() {
+    chat.innerHTML = '';
+    visitedThemLines.clear();
+    renderNode('start');
+  }
+
+  restartBtn.addEventListener('click', start);
+  start();
+</script>
+</body>
+</html>
