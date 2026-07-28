@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 24 · Constellation of Us</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;1,500&family=Work+Sans:wght@300;400;500&family=Caveat:wght@500;600&display=swap');
+
+  :root{
+    --cream:#faf3ea;
+    --plum:#4a3350;
+    --rose:#c98a9c;
+    --gold:#c9a24b;
+    --blush:#f1dcd5;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+
+  body{
+    min-height:100vh;
+    background:radial-gradient(ellipse at top, #241a33 0%, #14101c 55%, #0c0913 100%);
+    font-family:'Work Sans', sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    position:relative;
+  }
+
+  .badge{
+    position:absolute;
+    top:24px;
+    right:24px;
+    width:56px;
+    height:56px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #e0bb5f, var(--gold) 60%, #8a6d2c 100%);
+    box-shadow:0 4px 14px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.3);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    color:#3a2c10;
+    font-size:20px;
+    animation:spin-slow 14s linear infinite;
+    z-index:10;
+  }
+  @keyframes spin-slow{
+    from{transform:rotate(0deg);}
+    to{transform:rotate(360deg);}
+  }
+  .badge span{animation:counter-spin-slow 14s linear infinite;}
+  @keyframes counter-spin-slow{
+    from{transform:rotate(0deg);}
+    to{transform:rotate(-360deg);}
+  }
+
+  .stage{
+    position:relative;
+    width:min(90vw, 700px);
+    height:min(85vh, 620px);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .header{
+    text-align:center;
+    color:var(--blush);
+    margin-bottom:8px;
+    z-index:5;
+  }
+  .header .day{
+    font-family:'Caveat', cursive;
+    font-size:1.4rem;
+    color:var(--gold);
+    letter-spacing:1px;
+  }
+  .header h1{
+    font-family:'Fraunces', serif;
+    font-weight:400;
+    font-style:italic;
+    font-size:1.7rem;
+    margin-top:2px;
+  }
+  .instructions{
+    font-size:0.85rem;
+    color:#c9bcd6;
+    margin-top:6px;
+    font-weight:300;
+    opacity:0.8;
+    transition:opacity 0.6s ease;
+  }
+
+  svg{
+    width:100%;
+    flex:1;
+    touch-action:none;
+  }
+
+  .star{
+    cursor:pointer;
+    transition:filter 0.3s ease;
+  }
+  .star circle.core{
+    fill:var(--blush);
+    filter:drop-shadow(0 0 4px rgba(241,220,213,0.7));
+  }
+  .star.done circle.core{
+    fill:var(--gold);
+    filter:drop-shadow(0 0 10px rgba(201,162,75,0.95));
+  }
+  .star.next circle.pulse{
+    animation:pulse-ring 1.6s ease-out infinite;
+  }
+  @keyframes pulse-ring{
+    0%{r:9; opacity:0.6;}
+    70%{r:22; opacity:0;}
+    100%{r:22; opacity:0;}
+  }
+
+  .line-path{
+    fill:none;
+    stroke:var(--gold);
+    stroke-width:2;
+    stroke-linecap:round;
+    filter:drop-shadow(0 0 5px rgba(201,162,75,0.6));
+  }
+
+  .reveal{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    text-align:center;
+    padding:40px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 1.2s ease;
+    z-index:8;
+  }
+  .reveal.show{
+    opacity:1;
+    pointer-events:auto;
+  }
+  .reveal-card{
+    background:linear-gradient(160deg, var(--cream), var(--blush));
+    border-radius:18px;
+    padding:40px 34px;
+    max-width:440px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.5);
+    border:1px solid rgba(201,162,75,0.4);
+  }
+  .reveal-card .glyph{
+    font-size:2.4rem;
+    color:var(--rose);
+    margin-bottom:10px;
+  }
+  .reveal-card p{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-size:1.25rem;
+    line-height:1.6;
+    color:var(--plum);
+  }
+  .reveal-card .sign{
+    margin-top:18px;
+    font-family:'Caveat', cursive;
+    font-size:1.3rem;
+    color:var(--rose);
+  }
+
+  .bg-star{
+    position:absolute;
+    background:white;
+    border-radius:50%;
+    opacity:0.5;
+    animation:twinkle 3s ease-in-out infinite;
+  }
+  @keyframes twinkle{
+    0%,100%{opacity:0.15;}
+    50%{opacity:0.7;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="badge"><span>17</span></div>
+
+  <div class="stage">
+    <div class="header">
+      <div class="day">Day Twenty Four</div>
+      <h1>Constellation of Us</h1>
+      <div class="instructions" id="instructions">Tap the stars in order to trace the shape between us</div>
+    </div>
+
+    <svg id="sky" viewBox="0 0 600 420" preserveAspectRatio="xMidYMid meet">
+      <path id="linePath" class="line-path" d=""></path>
+      <g id="stars"></g>
+    </svg>
+
+    <div class="reveal" id="reveal">
+      <div class="reveal-card">
+        <div class="glyph">✦</div>
+        <p>No matter how many miles sit between us, we're still tracing the same sky — every star is a small proof that we're pointed at each other.</p>
+        <div class="sign">— always, us</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Heart-shape star coordinates (order matters — this defines the sequence)
+  const points = [
+    {x:300, y:120},
+    {x:250, y:70},
+    {x:190, y:75},
+    {x:150, y:120},
+    {x:150, y:170},
+    {x:220, y:250},
+    {x:300, y:330},
+    {x:380, y:250},
+    {x:450, y:170},
+    {x:450, y:120},
+    {x:410, y:75},
+    {x:350, y:70}
+  ];
+  const closePoint = {x:300, y:120}; // returns to the first star to seal the shape
+
+  const svgNS = "http://www.w3.org/2000/svg";
+  const starsGroup = document.getElementById('stars');
+  const linePath = document.getElementById('linePath');
+  const instructions = document.getElementById('instructions');
+  const reveal = document.getElementById('reveal');
+
+  let currentIndex = 0;
+  let pathData = "";
+
+  // background twinkle stars
+  for(let i=0;i<60;i++){
+    const s = document.createElement('div');
+    s.className = 'bg-star';
+    const size = Math.random()*2 + 1;
+    s.style.width = size+'px';
+    s.style.height = size+'px';
+    s.style.left = Math.random()*100+'%';
+    s.style.top = Math.random()*100+'%';
+    s.style.animationDelay = (Math.random()*3)+'s';
+    document.body.appendChild(s);
+  }
+
+  function createStar(pt, index){
+    const g = document.createElementNS(svgNS, 'g');
+    g.setAttribute('class', 'star');
+    g.dataset.index = index;
+
+    const pulse = document.createElementNS(svgNS, 'circle');
+    pulse.setAttribute('class', 'pulse');
+    pulse.setAttribute('cx', pt.x);
+    pulse.setAttribute('cy', pt.y);
+    pulse.setAttribute('r', 9);
+    pulse.setAttribute('fill', 'none');
+    pulse.setAttribute('stroke', '#c9a24b');
+    pulse.setAttribute('stroke-width', '1.5');
+    g.appendChild(pulse);
+
+    const hit = document.createElementNS(svgNS, 'circle');
+    hit.setAttribute('cx', pt.x);
+    hit.setAttribute('cy', pt.y);
+    hit.setAttribute('r', 18);
+    hit.setAttribute('fill', '#000');
+    hit.setAttribute('opacity', '0');
+    hit.style.pointerEvents = 'all';
+    g.appendChild(hit);
+
+    const core = document.createElementNS(svgNS, 'circle');
+    core.setAttribute('class', 'core');
+    core.setAttribute('cx', pt.x);
+    core.setAttribute('cy', pt.y);
+    core.setAttribute('r', 5.5);
+    g.appendChild(core);
+
+    g.addEventListener('click', () => handleTap(index, g));
+    starsGroup.appendChild(g);
+    return g;
+  }
+
+  const starEls = points.map((pt, i) => createStar(pt, i));
+  updateNextIndicator();
+
+  function updateNextIndicator(){
+    starEls.forEach((el, i) => el.classList.remove('next'));
+    if(currentIndex < points.length){
+      starEls[currentIndex].classList.add('next');
+    }
+  }
+
+  function handleTap(index, el){
+    if(index !== currentIndex) return;
+
+    el.classList.remove('next');
+    el.classList.add('done');
+
+    const pt = points[index];
+    pathData += (pathData === "" ? `M ${pt.x} ${pt.y}` : ` L ${pt.x} ${pt.y}`);
+    linePath.setAttribute('d', pathData);
+
+    currentIndex++;
+
+    if(currentIndex < points.length){
+      updateNextIndicator();
+      instructions.textContent = `${points.length - currentIndex} stars left to trace us`;
+    } else {
+      pathData += ` L ${closePoint.x} ${closePoint.y}`;
+      linePath.setAttribute('d', pathData);
+      instructions.style.opacity = '0';
+      setTimeout(() => {
+        reveal.classList.add('show');
+      }, 900);
+    }
+  }
+</script>
+
+</body>
+</html>
