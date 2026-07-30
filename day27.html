@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 27 — Us, Wrapped</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Work+Sans:wght@400;500&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FBF3EC; --plum: #3D1F2B; --rose: #C87A88; --gold: #D9A94E; --blush: #F3DCE1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: var(--plum); color: var(--cream);
+    font-family: 'Work Sans', sans-serif; display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .seal {
+    position: fixed; top: 24px; right: 24px; width: 64px; height: 64px; border-radius: 50%;
+    background: var(--gold); color: var(--plum); display: flex; align-items: center; justify-content: center;
+    font-family: 'Caveat', cursive; font-size: 1.3rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transform: rotate(-6deg); user-select: none; z-index: 5;
+  }
+
+  .phone {
+    position: relative; width: 100%; max-width: 340px; height: 560px; border-radius: 24px;
+    overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+  }
+
+  .progress-bars { position: absolute; top: 14px; left: 14px; right: 14px; display: flex; gap: 4px; z-index: 3; }
+  .bar { flex: 1; height: 3px; background: rgba(255,255,255,0.25); border-radius: 2px; overflow: hidden; }
+  .bar-fill { height: 100%; width: 0%; background: var(--cream); }
+  .bar.done .bar-fill { width: 100%; }
+
+  .slide {
+    position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center;
+    padding: 60px 28px 28px; text-align: center;
+  }
+  .slide.active { display: flex; animation: fadeIn 0.35s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+
+  .slide .eyebrow { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.65; margin-bottom: 10px; }
+  .slide .big-num { font-family: 'Fraunces', serif; font-weight: 600; font-size: 3.2rem; line-height: 1; margin-bottom: 10px; }
+  .slide .label { font-size: 1rem; line-height: 1.4; opacity: 0.9; }
+  .slide .caveat-line { font-family: 'Caveat', cursive; font-size: 1.3rem; margin-top: 16px; opacity: 0.85; }
+
+  .tap-zones { position: absolute; inset: 0; display: flex; z-index: 4; }
+  .tap-zone { flex: 1; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .slide.active { animation: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="seal">Day 27</div>
+  <div class="phone">
+    <div class="progress-bars" id="progressBars"></div>
+    <div id="slides"></div>
+    <div class="tap-zones">
+      <div class="tap-zone" id="prevZone"></div>
+      <div class="tap-zone" id="nextZone"></div>
+    </div>
+  </div>
+
+<script>
+ 
+  const slides = [
+    { eyebrow: "This year, together", bigNum: "301", label: "days of long distance, give or take", caveatLine: "and still, every one of them worth it" },
+    { eyebrow: "Phone calls", bigNum: "700+", label: "conversations that started with \"hello hello\"", caveatLine: "HAr din baat krke ek sukun sa milta hai" },
+    { eyebrow: "Distance", bigNum: "13,000+ km", label: "the space between us most days", caveatLine: "shrinking every time we make a plan" },
+    { eyebrow: "Your most-used word", bigNum: "\"You don't love me anymore\"", label: "somehow said in about any situation", caveatLine: "Ab kaise batau kaddu kitna Pyaar krta hu" },
+    { eyebrow: "Overall verdict", bigNum: "100%", label: "worth every long-distance minute of it", caveatLine: "Life is fun with you Kadduuuuuuuu" },
+  ];
+  // --------------------------------------------------------
+
+  const slidesEl = document.getElementById('slides');
+  const progressBars = document.getElementById('progressBars');
+  let current = 0;
+  let timer;
+
+  slides.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'slide' + (i === 0 ? ' active' : '');
+    div.innerHTML = `
+      <p class="eyebrow">${s.eyebrow}</p>
+      <p class="big-num">${s.bigNum}</p>
+      <p class="label">${s.label}</p>
+      <p class="caveat-line">${s.caveatLine}</p>
+    `;
+    slidesEl.appendChild(div);
+
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.innerHTML = '<div class="bar-fill"></div>';
+    progressBars.appendChild(bar);
+  });
+
+  const slideEls = document.querySelectorAll('.slide');
+  const barEls = document.querySelectorAll('.bar');
+  const DURATION = 7000;
+
+  function goTo(i) {
+    if (i < 0) i = 0;
+    if (i >= slides.length) i = slides.length - 1;
+    current = i;
+    slideEls.forEach((s, idx) => s.classList.toggle('active', idx === current));
+    barEls.forEach((b, idx) => {
+      b.classList.toggle('done', idx < current);
+      const fill = b.querySelector('.bar-fill');
+      if (idx === current) {
+        fill.style.transition = 'none';
+        fill.style.width = '0%';
+      } else {
+       
+        fill.style.transition = 'none';
+        fill.style.width = idx < current ? '100%' : '0%';
+      }
+    });
+    restartTimer();
+  }
+
+  function restartTimer() {
+    clearTimeout(timer);
+    const fill = barEls[current].querySelector('.bar-fill');
+    requestAnimationFrame(() => {
+      fill.style.transition = `width ${DURATION}ms linear`;
+      fill.style.width = '100%';
+    });
+    timer = setTimeout(() => {
+      if (current < slides.length - 1) goTo(current + 1);
+    }, DURATION);
+  }
+
+  document.getElementById('nextZone').addEventListener('click', () => goTo(current + 1));
+  document.getElementById('prevZone').addEventListener('click', () => goTo(current - 1));
+
+  goTo(0);
+</script>
+</body>
+</html>
