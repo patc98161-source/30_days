@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 9 — Our Playlist</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Work+Sans:wght@400;500&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FBF3EC; --plum: #3D1F2B; --rose: #C87A88; --gold: #D9A94E; --blush: #F3DCE1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: var(--cream); color: var(--plum);
+    font-family: 'Work Sans', sans-serif; display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  h1 { font-family: 'Fraunces', serif; font-weight: 600; margin: 0 0 8px; font-size: 1.5rem; text-align: center; }
+  p.sub { margin: 0 0 20px; opacity: 0.75; font-size: 0.9rem; text-align: center; }
+  .seal {
+    position: fixed; top: 24px; right: 24px; width: 64px; height: 64px; border-radius: 50%;
+    background: var(--gold); color: var(--cream); display: flex; align-items: center; justify-content: center;
+    font-family: 'Caveat', cursive; font-size: 1.3rem; box-shadow: 0 4px 12px rgba(61,31,43,0.25);
+    transform: rotate(-6deg); user-select: none;
+  }
+  .card {
+    background: var(--blush); border-radius: 20px; padding: 32px; max-width: 420px; width: 100%;
+    box-shadow: 0 8px 30px rgba(61,31,43,0.12); animation: rise 0.6s ease-out;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  .now-playing {
+    background: var(--cream); border-radius: 14px; padding: 20px; text-align: center; margin-bottom: 18px;
+  }
+  .art {
+    width: 96px; height: 96px; margin: 0 auto 14px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--rose), var(--gold));
+    display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: var(--cream);
+    box-shadow: 0 6px 16px rgba(61,31,43,0.18);
+  }
+  .track-title { font-family: 'Fraunces', serif; font-size: 1.1rem; margin: 0 0 2px; }
+  .track-sub { font-size: 0.8rem; opacity: 0.6; margin: 0 0 14px; }
+
+  .progress-bar {
+    width: 100%; height: 4px; background: var(--blush); border-radius: 4px; overflow: hidden; margin-bottom: 6px;
+    cursor: pointer;
+  }
+  .progress-fill { height: 100%; background: var(--rose); width: 0%; transition: width 0.1s linear; }
+  .time-row { display: flex; justify-content: space-between; font-size: 0.7rem; opacity: 0.55; margin-bottom: 14px; }
+
+  .controls { display: flex; align-items: center; justify-content: center; gap: 18px; }
+  .ctrl-btn {
+    background: none; border: none; cursor: pointer; font-size: 1.2rem; color: var(--plum);
+    opacity: 0.7; transition: opacity 0.15s ease;
+  }
+  .ctrl-btn:hover { opacity: 1; }
+  .ctrl-btn.play {
+    background: var(--rose); color: var(--cream); width: 46px; height: 46px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 1.3rem; opacity: 1;
+  }
+  .ctrl-btn.play:hover { background: var(--plum); }
+
+  .tracklist { display: flex; flex-direction: column; gap: 6px; }
+  .track {
+    display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px;
+    cursor: pointer; transition: background 0.15s ease;
+  }
+  .track:hover { background: var(--cream); }
+  .track.active { background: var(--cream); }
+  .track .num { font-size: 0.75rem; opacity: 0.5; width: 16px; }
+  .track .info { flex: 1; min-width: 0; }
+  .track .t-title { font-size: 0.88rem; }
+  .track .t-caption { font-size: 0.72rem; opacity: 0.55; }
+  .track.active .t-title { color: var(--rose); font-weight: 500; }
+
+  audio { display: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card { animation: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="seal">Day 9</div>
+  <div class="card">
+    <h1>Our Playlist</h1>
+    <p class="sub">the songs that sound like us</p>
+
+    <div class="now-playing">
+      <div class="art" id="art">♪</div>
+      <p class="track-title" id="trackTitle">Track title</p>
+      <p class="track-sub" id="trackCaption">why it's on here</p>
+      <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="time-row"><span id="curTime">0:00</span><span id="durTime">0:00</span></div>
+      <div class="controls">
+        <button class="ctrl-btn" id="prevBtn">⏮</button>
+        <button class="ctrl-btn play" id="playBtn">▶</button>
+        <button class="ctrl-btn" id="nextBtn">⏭</button>
+      </div>
+    </div>
+
+    <div class="tracklist" id="tracklist"></div>
+    <audio id="audio"></audio>
+  </div>
+
+<script>
+ 
+  const tracks = [
+    { title: "Track 1", caption: "Promises", src: "audio/Khat.mp3" },
+    { title: "Track 2", caption: "Khuwabo mai bassi h tu", src: "audio/Aarzu.mp3" },
+    { title: "Track 3", caption: "our unofficial song", src: "audio/Jo_Tum_Mere_Ho.mp3" },
+    { title: "Track 4", caption: "I lovee youuu kadduuu", src: "audio/Barishien.mp3" },
+    { title: "Track 5", caption: "Faasle", src: "audio/Faasle.mp3" },
+  ];
+ 
+
+  const audio = document.getElementById('audio');
+  const art = document.getElementById('art');
+  const trackTitle = document.getElementById('trackTitle');
+  const trackCaption = document.getElementById('trackCaption');
+  const progressBar = document.getElementById('progressBar');
+  const progressFill = document.getElementById('progressFill');
+  const curTime = document.getElementById('curTime');
+  const durTime = document.getElementById('durTime');
+  const playBtn = document.getElementById('playBtn');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const tracklistEl = document.getElementById('tracklist');
+
+  let current = 0;
+  let isPlaying = false;
+  let simTimer = null;
+  let simElapsed = 0;
+  const simDuration = 180; // 3:00 fake duration for tracks without real audio
+
+  function fmt(sec) {
+    sec = Math.floor(sec);
+    return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+  }
+
+  function renderTracklist() {
+    tracklistEl.innerHTML = '';
+    tracks.forEach((t, i) => {
+      const el = document.createElement('div');
+      el.className = 'track' + (i === current ? ' active' : '');
+      el.innerHTML = `
+        <span class="num">${i + 1}</span>
+        <div class="info">
+          <div class="t-title">${t.title}</div>
+          <div class="t-caption">${t.caption}</div>
+        </div>
+      `;
+      el.addEventListener('click', () => loadTrack(i, true));
+      tracklistEl.appendChild(el);
+    });
+  }
+
+  function loadTrack(i, autoplay) {
+    stopSim();
+    current = i;
+    const t = tracks[current];
+    trackTitle.textContent = t.title;
+    trackCaption.textContent = t.caption;
+    progressFill.style.width = '0%';
+    curTime.textContent = '0:00';
+    simElapsed = 0;
+
+    if (t.src) {
+      audio.src = t.src;
+      durTime.textContent = '0:00';
+      audio.onloadedmetadata = () => durTime.textContent = fmt(audio.duration);
+    } else {
+      audio.removeAttribute('src');
+      durTime.textContent = fmt(simDuration);
+    }
+
+    renderTracklist();
+    if (autoplay) play();
+  }
+
+  function play() {
+    isPlaying = true;
+    playBtn.textContent = '⏸';
+    if (tracks[current].src) {
+      audio.play().catch(() => {});
+    } else {
+      simTimer = setInterval(() => {
+        simElapsed += 0.5;
+        if (simElapsed >= simDuration) { simElapsed = simDuration; nextTrack(); return; }
+        progressFill.style.width = (simElapsed / simDuration * 100) + '%';
+        curTime.textContent = fmt(simElapsed);
+      }, 500);
+    }
+  }
+
+  function pause() {
+    isPlaying = false;
+    playBtn.textContent = '▶';
+    audio.pause();
+    stopSim();
+  }
+
+  function stopSim() {
+    if (simTimer) { clearInterval(simTimer); simTimer = null; }
+  }
+
+  function nextTrack() { loadTrack((current + 1) % tracks.length, true); }
+  function prevTrack() { loadTrack((current - 1 + tracks.length) % tracks.length, true); }
+
+  playBtn.addEventListener('click', () => isPlaying ? pause() : play());
+  nextBtn.addEventListener('click', nextTrack);
+  prevBtn.addEventListener('click', prevTrack);
+
+  progressBar.addEventListener('click', (e) => {
+    const rect = progressBar.getBoundingClientRect();
+    const ratio = (e.clientX - rect.left) / rect.width;
+    if (tracks[current].src && audio.duration) {
+      audio.currentTime = ratio * audio.duration;
+    } else {
+      simElapsed = ratio * simDuration;
+      progressFill.style.width = (ratio * 100) + '%';
+      curTime.textContent = fmt(simElapsed);
+    }
+  });
+
+  audio.addEventListener('timeupdate', () => {
+    if (audio.duration) {
+      progressFill.style.width = (audio.currentTime / audio.duration * 100) + '%';
+      curTime.textContent = fmt(audio.currentTime);
+    }
+  });
+  audio.addEventListener('ended', nextTrack);
+
+  loadTrack(0, false);
+</script>
+</body>
+</html>
